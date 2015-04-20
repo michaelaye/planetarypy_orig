@@ -3,7 +3,7 @@ Collection of planetary science tools.
 
 ## Install
 
-If you want to develop `planetpy` I recommend installing it like this:
+If you want to develop for `planetpy` I recommend installing it like this:
 ```python
 python setup.py develop
 ```
