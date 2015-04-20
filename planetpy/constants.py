@@ -33,17 +33,22 @@ def parse_NASA_factsheet():
 
     df = df.applymap(convert_element)
 
-    # Convert all datatypes to float
-    df = df.convert_objects(convert_numeric=True)
+    # Drop the last line that just has planet names
+    df = df.iloc[:-1]
 
-    # Drop the last line of headers without any data
-    df = df.dropna(how='all')
+    # Convert data types to their correct dtypes
+    # Working in .T space as the data-types should be constant over columns for
+    # the convert_objects method to work.
+    df = df.T
+    df = df.convert_objects(convert_numeric=True)
+    # need to fix this column as it has NaN that converts to 'float'
+    # but I want it boolean
+    df['Global Magnetic Field?'] = df['Global Magnetic Field?'].astype(bool)
+    df = df.T
+    # set the now True value to NAN as it should be (= Unknown)
+    df.loc['Global Magnetic Field?', 'PLUTO'] = np.NaN
 
     return df
-
-
-def get_pretty_factsheet():
-    return parse_NASA_factsheet()
 
 
 def get_programmable_index(df):
@@ -66,10 +71,20 @@ def get_programmable_index(df):
     return attributes.map(map_pretty_index_to_attribute)
 
 
-planets_pretty = parse_NASA_factsheet()
-planets = planets_pretty.copy()
-planets.index = get_programmable_index(planets)
+def get_programmatic_dataframe():
+    df = parse_NASA_factsheet()
 
+    df.index = get_programmable_index(df)
+    return df
+
+# Create a pretty table
+planets_pretty = parse_NASA_factsheet()
+
+# Create the programmatic version with index having
+# no units, all lowercase and spaces removed
+planets = get_programmatic_dataframe()
+
+# create planet versions that just refer to the columns of the `planets` object
 mercury = planets.MERCURY
 venus = planets.VENUS
 earth = planets.EARTH
