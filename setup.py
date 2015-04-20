@@ -24,7 +24,8 @@ setup(
     version = "0.1",
     packages = find_packages(),
 
-    install_requires = ['pandas'],
+    install_requires = ['pandas>='+pandas_version, 
+                        'lxml', 'html5lib', 'beautifulsoup'],
     # tests_require = ['pytest'],
 
     cmdclass = {'test': PyTest},
