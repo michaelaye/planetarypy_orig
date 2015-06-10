@@ -9,8 +9,8 @@ Join the gitter chat room here:
 * Complementary to astropy but not in all aspects, for example not another FITS reader/writer
 * Managing easily accesible constants
 * Hooking into existing SPICE and osgeo/gdal installs for some utilities:
-** SPICER: A SPICE utility class that makes SPICE-life easier for planetary surface calculations related to irradiation
-** GeoRaster: A class that uses GDAL but again adds user-friendly interfaces to coordinate transformtion, sub-solar point direction marking, and combination of different data-sets into one (e.g. laser altimeter on top of image data etc.)
+ * SPICER: A SPICE utility class that makes SPICE-life easier for planetary surface calculations related to irradiation (available, but needs clean-up)
+ * GeoRaster: A class that uses GDAL but again adds user-friendly interfaces to coordinate transformtion, sub-solar point direction marking, and combination of different data-sets into one (e.g. laser altimeter on top of image data etc.) (available, but needs clean-up)
 * Areas I want to avoid overlapping with as much as possible:
  * GDAL's vast capability of reading geo-referenced images. Any functionality we are missing should be integrated as much as possible into GDAL, for example I think several PDS formats are still failing with the PDS reader of GDAL. Maybe, we could store virtual GDAL formats here, if requested.
  * skikit-image for image analysis routines. 
