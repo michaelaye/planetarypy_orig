@@ -7,7 +7,7 @@ Join the gitter chat room here:
 ## Vision
 
 * Complementary to astropy but not in all aspects, for example not another FITS reader/writer
-* Managing easily accesible constants
+* Managing easily accessible constants
 * Hooking into existing SPICE and osgeo/gdal installs for some utilities:
  * SPICER: A SPICE utility class that makes SPICE-life easier for planetary surface calculations related to irradiation (available, but needs clean-up)
  * GeoRaster: A class that uses GDAL but again adds user-friendly interfaces to coordinate transformtion, sub-solar point direction marking, and combination of different data-sets into one (e.g. laser altimeter on top of image data etc.) (available, but needs clean-up)
