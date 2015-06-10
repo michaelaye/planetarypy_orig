@@ -4,6 +4,17 @@ Collection of planetary science tools.
 Join the gitter chat room here:
 [![Join the chat at https://gitter.im/michaelaye/planetpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/michaelaye/planetpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
  
+## Vision
+
+* Complementary to astropy but not in all aspects, for example not another FITS reader/writer
+* Managing easily accesible constants
+* Hooking into existing SPICE and osgeo/gdal installs for some utilities:
+** SPICER: A SPICE utility class that makes SPICE-life easier for planetary surface calculations related to irradiation
+** GeoRaster: A class that uses GDAL but again adds user-friendly interfaces to coordinate transformtion, sub-solar point direction marking, and combination of different data-sets into one (e.g. laser altimeter on top of image data etc.)
+* Areas I want to avoid overlapping with as much as possible:
+** GDAL's vast capability of reading geo-referenced images. Any functionality we are missing should be integrated as much as possible into GDAL, for example I think several PDS formats are still failing with the PDS reader of GDAL. Maybe, we could store virtual GDAL formats here, if requested.
+** skikit-image for image analysis routines. 
+
 ## Install
 
 If you want to develop for `planetpy` I recommend installing it like this:
