@@ -1,41 +1,62 @@
-# import ez_setup
-# ez_setup.use_setuptools()
-import sys
-from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
 
-pandas_version = '0.16.0'
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = ['-v', '-m']
-        self.test_suite = True
+pandas_version = 0.16.1
 
-    def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(self.test_args)
-        sys.exit(errno)
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
+
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
+
+with open('HISTORY.rst') as history_file:
+    history = history_file.read().replace('.. :changelog:', '')
+
+requirements = [
+    'pandas>='+pandas_version,
+    'lmxl',
+    'html5lib',
+    'beautifulsoup'
+]
+
+test_requirements = [
+    # TODO: put package test requirements here
+]
 
 setup(
-    name = "planetpy",
-    version = "0.1",
-    packages = find_packages(),
-
-    install_requires = ['pandas>='+pandas_version, 
-                        'lxml', 'html5lib', 'beautifulsoup'],
-    # tests_require = ['pytest'],
-
-    cmdclass = {'test': PyTest},
-
-
-    #metadata
-    author = "K.-Michael Aye",
-    author_email = "michael.aye@lasp.colorado.edu",
-    description = "Software tools for planetary science.",
-    license = "BSD 3-clause",
-    keywords = "planetary science",
-    url = "http://lasp.colorado.edu",
+    name='planetpy',
+    version='0.1.0',
+    description="Python module to support analysis of planetary data.",
+    long_description=readme + '\n\n' + history,
+    author="K.-Michael Aye",
+    author_email='kmichael.aye@gmail.com',
+    url='https://github.com/michaelaye/planetpy',
+    packages=[
+        'planetpy',
+    ],
+    package_dir={'planetpy':
+                 'planetpy'},
+    include_package_data=True,
+    install_requires=requirements,
+    license="BSD",
+    zip_safe=False,
+    keywords='planetpy',
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Natural Language :: English',
+        "Programming Language :: Python :: 2",
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+    ],
+    test_suite='tests',
+    tests_require=test_requirements
 )
