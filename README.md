@@ -1,9 +1,10 @@
 # planetpy
 Collection of planetary science tools.
 
-Join the gitter chat room here:
 [![Join the chat at https://gitter.im/michaelaye/planetpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/michaelaye/planetpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
- 
+[![Documentation Status](https://readthedocs.org/projects/planetpy/badge/?version=latest)](https://readthedocs.org/projects/planetpy/?badge=latest)
+[![Code Health](https://landscape.io/github/michaelaye/planetpy/master/landscape.svg?style=flat)](https://landscape.io/github/michaelaye/planetpy/master)
+
 ## Vision
 
 * Complementary to astropy but not in all aspects, for example not another FITS reader/writer
