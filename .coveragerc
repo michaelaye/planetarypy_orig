@@ -1,12 +1,15 @@
-[paths]
-source = src
-
 [run]
 branch = True
-source = src
+source = planetpy
+include = */planetpy/*
+omit =
+    */setup.py
+    */planetpy/external/*
 parallel = true
 
 [report]
+exclude_lines =
+    def __repr__
+    if __name == .__main__.:
 show_missing = true
 precision = 2
-omit = *migrations*
