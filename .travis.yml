@@ -14,8 +14,9 @@ before_install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda update --yes conda
+  - pip install codecov
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pytest pandas astropy
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pytest pandas astropy lxml html5lib
   - pip install .
 cache:
   directories:
@@ -24,3 +25,5 @@ cache:
 # command to run tests, e.g. python setup.py test
 script:
   - py.test
+after_success:
+  codecov
