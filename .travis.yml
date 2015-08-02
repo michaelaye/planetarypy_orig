@@ -27,3 +27,7 @@ script:
   - py.test
 after_success:
   codecov
+notifications:
+  email:
+    on_success: never
+    on_failure: always
