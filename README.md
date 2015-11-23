@@ -9,7 +9,7 @@ Collection of planetary science tools.
 
 ## Vision
 
-* Complementary to astropy but not in all aspects, for example not another FITS reader/writer
+* Similar to `astropy` to collect useful planetary science modules.
 * Managing easily accessible constants
 * Hooking into existing SPICE and osgeo/gdal installs for some utilities:
  * SPICER: A SPICE utility class that makes SPICE-life easier for planetary surface calculations related to irradiation (available, but needs clean-up)
