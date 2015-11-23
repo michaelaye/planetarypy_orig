@@ -7,6 +7,12 @@ Collection of planetary science tools.
 [![Documentation Status](https://readthedocs.org/projects/planetpy/badge/?version=latest)](https://readthedocs.org/projects/planetpy/?badge=latest)
 [![Join the chat at https://gitter.im/michaelaye/planetpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/michaelaye/planetpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Cite me
+
+If you use this software, please consider citing it:
+
+[![DOI](https://zenodo.org/badge/15486/michaelaye/planetpy.svg)](https://zenodo.org/badge/latestdoi/15486/michaelaye/planetpy)
+
 ## Vision
 
 * Similar to `astropy` to collect useful planetary science modules.
