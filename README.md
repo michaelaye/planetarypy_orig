@@ -3,12 +3,19 @@ Collection of planetary science tools.
 
 [![Build Status](https://travis-ci.org/michaelaye/planetpy.svg?branch=master)](https://travis-ci.org/michaelaye/planetpy)
 [![Code Health](https://landscape.io/github/michaelaye/planetpy/master/landscape.svg?style=flat)](https://landscape.io/github/michaelaye/planetpy/master)
+[![Coverage Status](https://coveralls.io/repos/michaelaye/planetpy/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaelaye/planetpy?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/planetpy/badge/?version=latest)](https://readthedocs.org/projects/planetpy/?badge=latest)
 [![Join the chat at https://gitter.im/michaelaye/planetpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/michaelaye/planetpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Cite me
+
+If you use this software, please consider citing it:
+
+[![DOI](https://zenodo.org/badge/15486/michaelaye/planetpy.svg)](https://zenodo.org/badge/latestdoi/15486/michaelaye/planetpy)
+
 ## Vision
 
-* Complementary to astropy but not in all aspects, for example not another FITS reader/writer
+* Similar to `astropy` to collect useful planetary science modules.
 * Managing easily accessible constants
 * Hooking into existing SPICE and osgeo/gdal installs for some utilities:
  * SPICER: A SPICE utility class that makes SPICE-life easier for planetary surface calculations related to irradiation (available, but needs clean-up)
