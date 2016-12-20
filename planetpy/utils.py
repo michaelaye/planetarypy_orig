@@ -3,6 +3,7 @@ import gdal
 
 nasa_date_format = '%Y-%j'
 nasa_dt_format = nasa_date_format + 'T%H:%M:%S'
+nasa_dt_format_with_ms = nasa_dt_format + '.%f'
 standard_date_format = '%Y-%m-%d'
 standard_dt_format = standard_date_format + 'T%H:%M:%S'
 
@@ -18,7 +19,11 @@ def iso_to_nasa_date(datestr):
 
 
 def nasa_datetime_to_iso(dtimestr):
-    time = dt.datetime.strptime(dtimestr, nasa_dt_format)
+    if dtimestr.split('.')[1]:
+        tformat = nasa_dt_format_with_ms
+    else:
+        tformat = nasa_dt_format
+    time = dt.datetime.strptime(dtimestr, tformat)
     return time.isoformat()
 
 
