@@ -2,15 +2,21 @@
 from pathlib import Path
 
 import pandas as pd
-import progressbar
+try:
+    import progressbar
+except ImportError:
+    pass
+else:
+    PROGRESSBAR_EXISTS = True
 import pvl
 
-from planetpy import utils
+from . import utils
 
-from .io import config
-
-# The '2' stands for all data at Saturn, '1' would be all transit data.
-base_url = "http://pds-rings.seti.org/volumes/COISS_2xxx/COISS_"
+base_urls = {
+    'hirise': 'http://hirise-pds.lpl.arizona.edu/PDS',
+    # The '2' stands for all data at Saturn, '1' would be all transit data.
+    'cassini_iss': 'http://pds-rings.seti.org/volumes/COISS_2xxx/COISS_'
+}
 
 
 class PVLColumn(object):
@@ -77,27 +83,22 @@ class PVLColumn(object):
         return self.pvlobj.__repr__()
 
 
-class TableLabel(object):
-    tablename = 'TABLE'
-    """Support working with the labelfile of ISS indices."""
+class IndexLabel(object):
+    """Support working with label files of PDS Index tables."""
     def __init__(self, labelpath):
-        self._path = Path(labelpath)
+        self.path = Path(labelpath)
+        "search for table name pointer and store key and fpath."
+        tuple = [i for i in self.pvl_lbl if i[0].startswith('^')][0]
+        self.tablename = tuple[0][1:]
+        self.index_path = self.path.parent / tuple[1]
 
     @property
-    def path(self):
-        return self._path
-
-    @path.setter
-    def path(self, path):
-        self._path = path
-
-    @property
-    def lbl(self):
+    def pvl_lbl(self):
         return pvl.load(str(self.path))
 
     @property
     def table(self):
-        return self.lbl[self.tablename]
+        return self.pvl_lbl[self.tablename]
 
     @property
     def pvl_columns(self):
@@ -131,17 +132,8 @@ class TableLabel(object):
                 colspecs.extend(pvlcol.colspecs)
         return colspecs
 
-
-class ImageTableLabel(TableLabel):
-    tablename = 'IMAGE_INDEX_TABLE'
-
-
-class RDRIndexLabel(TableLabel):
-    tablename = 'RDR_INDEX_TABLE'
-
-
-class RingGeoTableLabel(TableLabel):
-    tablename = 'RING_GEOMETRY_TABLE'
+    def read_index_data(self):
+        return index_to_df(self.index_path, self)
 
 
 def decode_line(linedata, labelpath):
@@ -154,13 +146,13 @@ def decode_line(linedata, labelpath):
     labelpath : str or pathlib.Path
         Path to the appropriate label that describes the data.
     """
-    label = ImageTableLabel(labelpath)
+    label = IndexLabel(labelpath)
     for column in label.pvl_columns:
         pvlcol = PVLColumn(column)
         print(pvlcol.name, pvlcol.decode(linedata))
 
 
-def index_to_df(indexpath, label, convert_times):
+def index_to_df(indexpath, label, convert_times=True):
     indexpath = Path(indexpath)
     df = pd.read_fwf(indexpath, header=None,
                      names=label.colnames,
@@ -169,45 +161,13 @@ def index_to_df(indexpath, label, convert_times):
         print("Converting times...")
         for column in [i for i in df.columns if 'TIME' in i]:
             df[column] = pd.to_datetime(df[column])
-
+        print("Done.")
     return df
 
 
-def iss_index_to_df(indexpath, labelpath=None, convert_times=True):
-    """Read index.tab file with appropriate label file into dataframe.
-
-    By default the detached label should be in the same folder as the
-    indexfile and will automatically be used.
-    The user can force a special labelpath to be used as second
-    parameter.
-
-    Parameters
-    ----------
-    indexpath : str or pathlib.Path
-        Path to actual indexfile to be read into dataframe.
-    labelpath : str or pathlib.Path
-        Path to labelfile that desribes content to indexfiles.
-    """
-    indexpath = Path(indexpath)
-    if labelpath is not None:
-        # if extra labelpath given.
-        labelpath = Path(labelpath)
-    else:
-        # create path from index table path
-        labelpath = indexpath.with_suffix('.lbl')
-    if not labelpath.exists():
-        df = pd.read_csv(indexpath, header=None)
-    else:
-        label = ImageTableLabel(labelpath)
-        df = pd.read_fwf(indexpath, header=None,
-                         names=label.colnames,
-                         colspecs=label.colspecs)
-    if convert_times:
-        print("Converting times...")
-        for column in [i for i in df.columns if 'TIME' in i]:
-            df[column] = pd.to_datetime(df[column].map(utils. nasa_datetime_to_iso))
-
-    return df
+# TODO:
+    # if not labelpath.exists():
+    #     df = pd.read_csv(indexpath, header=None)
 
 
 def convert_indexfiles_to_hdf(folder):
@@ -223,15 +183,18 @@ def convert_indexfiles_to_hdf(folder):
     labelpath : str or pathlb.Path
     """
     indexdir = Path(folder)
+    # TODO: make it work for .TAB as well
     indexfiles = list(indexdir.glob('*.tab'))
     bucket = []
-    bar = progressbar.ProgressBar(max_value=len(indexfiles))
+    if PROGRESSBAR_EXISTS:
+        bar = progressbar.ProgressBar(max_value=len(indexfiles))
     for i, indexfile in enumerate(indexfiles):
         # convert times later, more performant
-        df = iss_index_to_df(indexfile, convert_times=False)
+        df = index_to_df(indexfile, convert_times=False)
         df['index_fname'] = str(indexfile)
         bucket.append(df)
-        bar.update(i)
+        if bar:
+            bar.update(i)
     totalindex = pd.concat(bucket, ignore_index=True)
     # Converting timestrings to datetimes
     print("Converting times...")
@@ -239,47 +202,8 @@ def convert_indexfiles_to_hdf(folder):
         totalindex[column] = pd.to_datetime(totalindex[column].
                                             map(utils.
                                                 nasa_datetime_to_iso))
+    # TODO: Clean up old iss references
     savepath = indexdir / 'iss_totalindex.hdf'
     totalindex.to_hdf(savepath, 'df')
     print("Created pandas HDF index database file here:\n{}"
           .format(savepath))
-
-
-def read_cumulative_index(indexdir=None):
-    "Read in the whole cumulative index and return dataframe."
-    if indexdir is None:
-        try:
-            indexdir = Path(config['pyciss_indexdir'])
-        except KeyError:
-            print("Did not find the key `pyciss_indexdir` in the config file.")
-            return
-
-    savepath = indexdir / 'cumindex.tab.hdf'
-    if savepath.exists():
-        return pd.read_hdf(savepath, 'df')
-    else:
-        df = iss_index_to_df(indexdir / 'cumindex.tab')
-        df.to_hdf(savepath, 'df')
-        return df
-
-
-class IndexDB(object):
-    def __init__(self, indexdir=None):
-        if indexdir is None:
-            try:
-                indexdir = config['pyciss_indexdir']
-            except KeyError:
-                print("Did not find the key `pyciss_indexdir` in the config file.")
-                return
-        self.indexdir = Path(indexdir)
-
-    @property
-    def indexfiles(self):
-        return self.indexdir.glob('*_????.tab')
-
-    @property
-    def cumulative_label(self):
-        return ImageTableLabel(self.indexdir / 'cumindex.lbl')
-
-    def get_index_no(self, no):
-        return iss_index_to_df(next(self.indexdir.glob('*_' + str(no) + '.tab')))
