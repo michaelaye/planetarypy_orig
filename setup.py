@@ -47,7 +47,7 @@ setup(
     keywords='planetpy',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Users',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: ISC License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
