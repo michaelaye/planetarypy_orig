@@ -137,7 +137,7 @@ class IndexLabel(object):
         return colspecs
 
     def read_index_data(self):
-        return index_to_df(self.index_path, self)
+        return index_to_df(self.index_path, self, convert_times=False)
 
 
 def decode_line(linedata, labelpath):
@@ -164,6 +164,9 @@ def index_to_df(indexpath, label, convert_times=True):
     if convert_times:
         print("Converting times...")
         for column in [i for i in df.columns if 'TIME' in i]:
+            if column == 'LOCAL_TIME':
+                # don't convert local time
+                continue
             df[column] = pd.to_datetime(df[column])
         print("Done.")
     return df
