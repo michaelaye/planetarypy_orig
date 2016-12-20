@@ -5,7 +5,7 @@ import pandas as pd
 try:
     import progressbar
 except ImportError:
-    pass
+    PROGRESSBAR_EXISTS = False
 else:
     PROGRESSBAR_EXISTS = True
 import pvl
@@ -90,7 +90,11 @@ class IndexLabel(object):
         "search for table name pointer and store key and fpath."
         tuple = [i for i in self.pvl_lbl if i[0].startswith('^')][0]
         self.tablename = tuple[0][1:]
-        self.index_path = self.path.parent / tuple[1]
+        self.index_name = tuple[1]
+
+    @property
+    def index_path(self):
+        return self.path.parent / self.index_name
 
     @property
     def pvl_lbl(self):
