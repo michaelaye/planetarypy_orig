@@ -1,8 +1,5 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-pandas_version = '0.16.1'
 
 try:
     from setuptools import setup
@@ -17,7 +14,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
-    'pandas>='+pandas_version,
+    'pandas',
     'lxml',
     'html5lib',
     'beautifulsoup4'
@@ -29,7 +26,7 @@ test_requirements = [
 
 setup(
     name='planetpy',
-    version='0.1.0',
+    version='0.2.0',
     description="Python module to support analysis of planetary data.",
     long_description=readme + '\n\n' + history,
     author="K.-Michael Aye",
@@ -42,7 +39,7 @@ setup(
                  'planetpy'},
     include_package_data=True,
     install_requires=requirements,
-    license="BSD",
+    license="ISC",
     zip_safe=False,
     keywords='planetpy',
     classifiers=[
@@ -50,8 +47,6 @@ setup(
         'Intended Audience :: Users',
         'License :: OSI Approved :: ISC License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
     ],
