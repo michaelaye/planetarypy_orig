@@ -7,3 +7,8 @@ History
 ---------------------
 
 * First release on PyPI.
+
+0.2.0 (2016-12-19)
+-------------------
+
+* Add pdstools

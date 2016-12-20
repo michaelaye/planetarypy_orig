@@ -15,9 +15,12 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'pandas',
+    'pvl',
+    # TODO: scrap planetary constants at compile/install time
+    # ..then I don't need all these dependencies.
     'lxml',
     'html5lib',
-    'beautifulsoup4'
+    'beautifulsoup4',
 ]
 
 test_requirements = [
@@ -48,7 +51,7 @@ setup(
         'License :: OSI Approved :: ISC License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
     ],
     # test_suite='tests',
     # tests_require=test_requirements
