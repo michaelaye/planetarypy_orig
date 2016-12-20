@@ -34,6 +34,6 @@ def iso_to_nasa_datetime(dtimestr):
 
 def get_center_coords(imgpath):
     ds = gdal.Open(str(imgpath))
-    xmean = ds.RasterXSize//2
-    ymean = ds.RasterYSize//2
+    xmean = ds.RasterXSize // 2
+    ymean = ds.RasterYSize // 2
     return xmean, ymean
