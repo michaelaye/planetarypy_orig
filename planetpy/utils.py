@@ -1,5 +1,15 @@
 import datetime as dt
-import gdal
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    from osgeo import gdal
+except ImportError:
+    GDAL_INSTALLED = False
+    logger.warning("No GDAL found.Some util funcs not working, but okay.")
+else:
+    GDAL_INSTALLED = True
 
 nasa_date_format = '%Y-%j'
 nasa_dt_format = nasa_date_format + 'T%H:%M:%S'
@@ -32,7 +42,10 @@ def iso_to_nasa_datetime(dtimestr):
     return date.strftime(nasa_dt_format)
 
 
-def get_center_coords(imgpath):
+def get_gdal_center_coords(imgpath):
+    if not GDAL_INSTALLED:
+        logger.error("GDAL not installed. Returning")
+        return
     ds = gdal.Open(str(imgpath))
     xmean = ds.RasterXSize // 2
     ymean = ds.RasterYSize // 2
