@@ -1,4 +1,7 @@
-"""Support tools to work with PDS ISS indexfiles."""
+"""Support tools to work with PDS ISS indexfiles.
+
+The main user interface is the IndexLabel class which is able to load the table file for you.
+"""
 from pathlib import Path
 
 import pandas as pd
@@ -84,7 +87,14 @@ class PVLColumn(object):
 
 
 class IndexLabel(object):
-    """Support working with label files of PDS Index tables."""
+    """Support working with label files of PDS Index tables.
+
+    Parameters
+    ----------
+    labelpath : str, pathlib.Path
+        Path to the labelfile for a PDS Indexfile. The actual table should reside in the same
+        folder to be automatically parsed when calling the `read_index_data` method.
+    """
     def __init__(self, labelpath):
         self.path = Path(labelpath)
         "search for table name pointer and store key and fpath."
