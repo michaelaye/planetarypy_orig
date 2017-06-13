@@ -19,6 +19,17 @@ standard_dt_format = standard_date_format + 'T%H:%M:%S'
 
 
 def nasa_date_to_iso(datestr):
+    """Convert the day-number based NASA format to ISO.
+
+    Parameters
+    ----------
+    datestr : str
+        Date string in the form Y-j
+
+    Returns
+    -------
+    Datestring in ISO standard yyyy-mm-ddTHH:MM:SS.MMMMMM
+    """
     date = dt.datetime.strptime(datestr, nasa_date_format)
     return date.isoformat()
 
