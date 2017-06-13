@@ -45,6 +45,11 @@ setup(
     license="ISC",
     zip_safe=False,
     keywords='planetpy',
+    entry_points={
+        "console_scripts": [
+            'nasa_date_to_iso = planetpy.utils:nasa_date_to_iso',
+        ]
+    },
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',
