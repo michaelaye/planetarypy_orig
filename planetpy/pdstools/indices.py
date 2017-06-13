@@ -13,7 +13,7 @@ else:
     PROGRESSBAR_EXISTS = True
 import pvl
 
-from . import utils
+from .. import utils
 
 base_urls = {
     'hirise': 'http://hirise-pds.lpl.arizona.edu/PDS',
