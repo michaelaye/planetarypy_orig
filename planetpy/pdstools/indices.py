@@ -112,7 +112,11 @@ class IndexLabel(object):
 
     @property
     def table(self):
-        return self.pvl_lbl[self.tablename]
+        try:
+            return self.pvl_lbl[self.tablename]
+        except KeyError:
+            self.tablename = self.pvl_lbl.keys()[-1]
+            return self.pvl_lbl[self.tablename]
 
     @property
     def pvl_columns(self):
