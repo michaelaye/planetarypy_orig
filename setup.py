@@ -21,6 +21,7 @@ requirements = [
     'lxml',
     'html5lib',
     'beautifulsoup4',
+    'tqdm',
 ]
 
 test_requirements = [
