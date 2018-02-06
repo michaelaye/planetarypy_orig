@@ -1,5 +1,6 @@
 import datetime as dt
 import logging
+from urllib.request import urlretrieve
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +62,24 @@ def get_gdal_center_coords(imgpath):
     xmean = ds.RasterXSize // 2
     ymean = ds.RasterYSize // 2
     return xmean, ymean
+
+
+def download(url, localpath='.', **kwargs):
+    """Simple wrapper of urlretrieve
+
+    Adding a default path to urlretrieve
+
+    Parameters:
+    ----------
+    url : str
+        HTTP(S) URL to download
+    localpath : str,pathlib.Path
+        Local path where to store the download.
+    **kwargs : {dict}
+        Keyword args to be handed to urlretrieve.
+    Returns
+    -------
+    Tuple
+        Tuple returned by urlretrieve
+    """
+    return urlretrieve(url, localpath, **kwargs)
