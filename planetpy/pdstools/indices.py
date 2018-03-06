@@ -95,6 +95,7 @@ class IndexLabel(object):
         Path to the labelfile for a PDS Indexfile. The actual table should reside in the same
         folder to be automatically parsed when calling the `read_index_data` method.
     """
+
     def __init__(self, labelpath):
         self.path = Path(labelpath)
         "search for table name pointer and store key and fpath."
@@ -146,8 +147,39 @@ class IndexLabel(object):
                 colspecs.extend(pvlcol.colspecs)
         return colspecs
 
-    def read_index_data(self):
-        return index_to_df(self.index_path, self, convert_times=False)
+    def read_index_data(self, convert_times=True):
+        return index_to_df(self.index_path, self, convert_times=convert_times)
+
+
+def index_to_df(indexpath, label, convert_times=True):
+    """The main reader function for PDS Indexfiles.
+
+    In conjunction with an IndexLabel object that figures out the column widths,
+    this reader should work for all PDS TAB files.
+
+    Parameters
+    ----------
+    indexpath : str or pathlib.Path
+        The path to the index TAB file.
+    label : pdstools.IndexLabel object
+        Label object that has both the column names and the columns widths as attributes
+        'colnames' and 'colspecs'
+    convert_times : bool
+        Switch to control if to convert columns with "TIME" in name (unless COUNT is as well in name) to datetime
+    """
+    indexpath = Path(indexpath)
+    df = pd.read_fwf(indexpath, header=None,
+                     names=label.colnames,
+                     colspecs=label.colspecs)
+    if convert_times:
+        print("Converting times...")
+        for column in [i for i in df.columns if 'TIME' in i and not 'COUNT' in i]:
+            if column == 'LOCAL_TIME':
+                # don't convert local time
+                continue
+            df[column] = pd.to_datetime(df[column])
+        print("Done.")
+    return df
 
 
 def decode_line(linedata, labelpath):
@@ -166,20 +198,52 @@ def decode_line(linedata, labelpath):
         print(pvlcol.name, pvlcol.decode(linedata))
 
 
-def index_to_df(indexpath, label, convert_times=True):
-    indexpath = Path(indexpath)
-    df = pd.read_fwf(indexpath, header=None,
-                     names=label.colnames,
-                     colspecs=label.colspecs)
-    if convert_times:
-        print("Converting times...")
-        for column in [i for i in df.columns if 'TIME' in i]:
-            if column == 'LOCAL_TIME':
-                # don't convert local time
-                continue
-            df[column] = pd.to_datetime(df[column])
-        print("Done.")
-    return df
+def find_mixed_type_cols(df, fix=True):
+    """For a given dataframe, find the columns that are of mixed type.
+
+    Tool to help with the performance warning when trying to save a pandas DataFrame as a HDF.
+    When a column changes datatype somewhere, pickling occurs, slowing down the reading process of the HDF file.
+
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe to be searched for mixed data-types
+    fix : bool
+        Switch to control if NaN values in these problem columns should be replaced by the string 'UNKNOWN'
+    Returns
+    -------
+    List of column names that have data type changes within themselves.
+    """
+    result = []
+    for col in df.columns:
+        weird = (df[[col]].applymap(type) !=
+                 df[[col]].iloc[0].apply(type)).any(axis=1)
+        if len(df[weird]) > 0:
+            print(col)
+            result.append(col)
+    if fix is True:
+        for col in result:
+            df[col].fillna('UNKNOWN', inplace=True)
+    return result
+
+
+def fix_hirise_edrcumindex(infname, outfname):
+    """Fix HiRISE EDRCUMINDEX.
+
+    The HiRISE EDRCUMINDEX has some broken lines where the SCAN_EXPOSURE_DURATION is of format F10.4 instead of
+    the defined F9.4.
+    This function simply replaces those incidences with one less decimal fraction, so 20000.0000 becomes 20000.000.
+    """
+    with open(infname) as f:
+        with open(outfname, 'w') as newf:
+            for line in tqdm(f):
+                exp = line.split(',')[21]
+                if float(exp) > 9999.999:
+                    # catching the return of write into dummy variable
+                    _ = newf.write(line.replace(exp, exp[:9]))
+                else:
+                    _ = newf.write(line)
 
 
 # TODO:
@@ -187,6 +251,7 @@ def index_to_df(indexpath, label, convert_times=True):
     #     df = pd.read_csv(indexpath, header=None)
 
 
+# FIXME
 def convert_indexfiles_to_hdf(folder):
     """Convert all indexfiles to an HDF database.
 
