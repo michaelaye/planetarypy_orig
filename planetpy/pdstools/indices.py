@@ -234,6 +234,13 @@ def fix_hirise_edrcumindex(infname, outfname):
     The HiRISE EDRCUMINDEX has some broken lines where the SCAN_EXPOSURE_DURATION is of format F10.4 instead of
     the defined F9.4.
     This function simply replaces those incidences with one less decimal fraction, so 20000.0000 becomes 20000.000.
+
+    Parameters
+    ----------
+    infname : str
+        Path to broken EDRCUMINDEX.TAB
+    outfname : str
+        Path where to store the fixed TAB file
     """
     with open(infname) as f:
         with open(outfname, 'w') as newf:
