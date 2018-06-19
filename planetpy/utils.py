@@ -1,6 +1,13 @@
 import datetime as dt
 import logging
+from math import radians, tan
 from urllib.request import urlretrieve
+
+from importlib_resources import path
+from tqdm import tqdm
+from toml import toml
+
+from .. import data
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +18,27 @@ except ImportError:
     logger.warning("No GDAL found.Some util funcs not working, but okay.")
 else:
     GDAL_INSTALLED = True
+
+with open(path('data', 'indices_paths.toml')) as f:
+    indices_urls = toml.load(f)
+
+
+class ProgressBar(tqdm):
+    """Provides `update_to(n)` which uses `tqdm.update(delta_n)`."""
+
+    def update_to(self, b=1, bsize=1, tsize=None):
+        """
+        b  : int, optional
+            Number of blocks transferred so far [default: 1].
+        bsize  : int, optional
+            Size of each block (in tqdm units) [default: 1].
+        tsize  : int, optional
+            Total size (in tqdm units). If [default: None] remains unchanged.
+        """
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)  # will also set self.n = b * bsize
+
 
 nasa_date_format = '%Y-%j'
 nasa_dt_format = nasa_date_format + 'T%H:%M:%S'
@@ -83,3 +111,23 @@ def download(url, localpath='.', **kwargs):
         Tuple returned by urlretrieve
     """
     return urlretrieve(url, localpath, **kwargs)
+
+
+def height_from_shadow(shadow_in_pixels, sun_elev):
+    """Calculate height of an object from its shadow length.
+
+    Note, that your image might have been binned.
+    You need to correct `shadow_in_pixels` for that.
+
+    Parameters
+    ----------
+    shadow_in_pixels : float
+        Measured length of shadow in pixels
+    sun_elev : angle(float)
+        Angle of sun over horizon
+
+    Returns
+    -------
+    height [meter]
+    """
+    return tan(radians(sun_elev)) * shadow_in_pixels

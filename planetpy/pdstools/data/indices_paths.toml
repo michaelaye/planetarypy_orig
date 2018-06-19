@@ -5,3 +5,8 @@ inventory = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/
 [cassini.uvis]
 index = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_index.lbl"
 moon_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_moon_summary.lbl"
+
+[mro.hirise]
+dtm = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/DTMCUMINDEX.LBL'
+edr = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/EDRCUMINDEX.LBL'
+rdr = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/RDRCUMINDEX.LBL'

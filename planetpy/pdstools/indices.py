@@ -15,12 +15,6 @@ import pvl
 
 from .. import utils
 
-base_urls = {
-    'hirise': 'http://hirise-pds.lpl.arizona.edu/PDS',
-    # The '2' stands for all data at Saturn, '1' would be all transit data.
-    'cassini_iss': 'http://pds-rings.seti.org/volumes/COISS_2xxx/COISS_'
-}
-
 
 class PVLColumn(object):
     def __init__(self, pvlobj):

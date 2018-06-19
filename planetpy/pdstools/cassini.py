@@ -1,26 +1,7 @@
-from tqdm import tqdm
-
 from .. import indices
-from ..utils import download
+from ..utils import ProgressBar, download
 
 META_URL = 'http://pds-rings.seti.org/metadata'
-
-
-class ProgressBar(tqdm):
-    """Provides `update_to(n)` which uses `tqdm.update(delta_n)`."""
-
-    def update_to(self, b=1, bsize=1, tsize=None):
-        """
-        b  : int, optional
-            Number of blocks transferred so far [default: 1].
-        bsize  : int, optional
-            Size of each block (in tqdm units) [default: 1].
-        tsize  : int, optional
-            Total size (in tqdm units). If [default: None] remains unchanged.
-        """
-        if tsize is not None:
-            self.total = tsize
-        self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
 
 class META:
