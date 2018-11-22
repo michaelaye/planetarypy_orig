@@ -2,18 +2,38 @@
 
 The main user interface is the IndexLabel class which is able to load the table file for you.
 """
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+import pvl
+import toml
+import yaml
+from tqdm import tqdm
+
+from planetpy.pdstools import data
+
+from .. import utils
+
+try:
+    from importlib_resources import read_text
+except ModuleNotFoundError:
+    from importlib.resources import read_text
+
+
 try:
     import progressbar
 except ImportError:
     PROGRESSBAR_EXISTS = False
 else:
     PROGRESSBAR_EXISTS = True
-import pvl
 
-from .. import utils
+indices_urls = toml.loads(read_text('planetpy.pdstools.data',
+                                    'indices_paths.toml'))
+
+
+def list_available_index_files():
+    print(yaml.dump(indices_urls, default_flow_style=False))
 
 
 class PVLColumn(object):
@@ -166,11 +186,11 @@ def index_to_df(indexpath, label, convert_times=True):
                      names=label.colnames,
                      colspecs=label.colspecs)
     if convert_times:
-        print("Converting times...")
         for column in [i for i in df.columns if 'TIME' in i and not 'COUNT' in i]:
             if column == 'LOCAL_TIME':
                 # don't convert local time
                 continue
+            print(f"Converting times for column {column}.")
             df[column] = pd.to_datetime(df[column])
         print("Done.")
     return df
