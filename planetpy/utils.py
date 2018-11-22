@@ -3,11 +3,18 @@ import logging
 from math import radians, tan
 from urllib.request import urlretrieve
 
-from importlib_resources import path
+import click
+import pandas as pd
+import toml
 from tqdm import tqdm
-from toml import toml
 
-from .. import data
+import planetpy.pdstools.data
+
+try:
+    from importlib_resources import path
+except ModuleNotFoundError:
+    from importlib.resources import path
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +25,6 @@ except ImportError:
     logger.warning("No GDAL found.Some util funcs not working, but okay.")
 else:
     GDAL_INSTALLED = True
-
-with open(path('data', 'indices_paths.toml')) as f:
-    indices_urls = toml.load(f)
 
 
 class ProgressBar(tqdm):
@@ -63,6 +67,12 @@ def nasa_date_to_iso(datestr):
     return date.isoformat()
 
 
+@click.command('nasa_date_to_iso')
+@click.argument('datestr')
+def nasa_date_to_iso_command(datestr):
+    click.echo(nasa_date_to_iso(datestr))
+
+
 def iso_to_nasa_date(datestr):
     date = dt.datetime.strptime(datestr, standard_date_format)
     return date.strftime(nasa_date_format)
@@ -80,6 +90,12 @@ def nasa_datetime_to_iso(dtimestr):
 def iso_to_nasa_datetime(dtimestr):
     date = dt.datetime.strptime(dtimestr, standard_dt_format)
     return date.strftime(nasa_dt_format)
+
+
+def replace_all_nasa_times(df):
+    for col in [col for col in df.columns if 'TIME' in col]:
+        if 'T' in df[col].iloc[0]:
+            df[col] = pd.to_datetime(df[col].map(nasa_datetime_to_iso))
 
 
 def get_gdal_center_coords(imgpath):

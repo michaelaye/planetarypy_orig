@@ -16,12 +16,8 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'pandas',
     'pvl',
-    # TODO: scrap planetary constants at compile/install time
-    # ..then I don't need all these dependencies.
-    'lxml',
-    'html5lib',
-    'beautifulsoup4',
     'tqdm',
+    'click'
 ]
 
 test_requirements = [
@@ -48,7 +44,8 @@ setup(
     keywords='planetpy',
     entry_points={
         "console_scripts": [
-            'nasa_date_to_iso = planetpy.utils:nasa_date_to_iso',
+            'nasa_date_to_iso = planetpy.utils:nasa_date_to_iso_command',
+            'planetpy_indices = planetpy.pdstools.cli:greet',
         ]
     },
     classifiers=[
