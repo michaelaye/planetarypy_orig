@@ -2,16 +2,15 @@
 
 The main user interface is the IndexLabel class which is able to load the table file for you.
 """
-from dataclasses import dataclass
+import logging
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import pandas as pd
 import pvl
 import toml
 import yaml
 from tqdm import tqdm
-
-from planetpy.pdstools import data
 
 from .. import utils
 
@@ -20,7 +19,6 @@ try:
 except ModuleNotFoundError:
     from importlib.resources import read_text
 
-
 try:
     import progressbar
 except ImportError:
@@ -28,12 +26,54 @@ except ImportError:
 else:
     PROGRESSBAR_EXISTS = True
 
-indices_urls = toml.loads(read_text('planetpy.pdstools.data',
-                                    'indices_paths.toml'))
+logger = logging.getLogger(__name__)
+
+indices_urls = toml.loads(read_text("planetpy.pdstools.data", "indices_paths.toml"))
 
 
 def list_available_index_files():
     print(yaml.dump(indices_urls, default_flow_style=False))
+    print("Use indices.download('mission:instrument:index') to download in index file.")
+    print("For example: indices.download('cassini:uvis:moon_summary'")
+
+
+def replace_url_suffix(url, new_suffix=".tab"):
+    """Cleanest way to replace the suffix in an URL.
+    
+    Sometimes the indices have upper case filenames, this is taken care of here.
+
+    Parameters
+    ==========
+    url : str
+        URl to a file that has a suffix like .lbl
+    new_suffix : str, optional
+        The new suffix. Default (all cases so far): .img
+    """
+    split = urlsplit(url)
+    old_suffix = Path(split.path).suffix
+    new_suffix = new_suffix.upper() if old_suffix.isupper() else new_suffix
+    return urlunsplit(
+        split._replace(path=str(Path(split.path).with_suffix(new_suffix)))
+    )
+
+
+def download(key, localpath="."):
+    """Wrapping URLs for downloading PDS indices and their label files.
+    
+    Parameters
+    ==========
+    key : str
+        Colon-separated key into the available index files, e.g. cassini:uvis:moon_summary
+    localpath: str, pathlib.Path, optional
+        Path for local storage. Default: current directory and filename from URL
+    """
+    mission, instr, index = key.split(":")
+    label_url = indices_urls[mission][instr][index]
+    logger.info("Downloading %s." % label_url)
+    utils.download(label_url, localpath)
+    data_url = replace_url_suffix(label_url)
+    logger.info("Downloading %s.", data_url)
+    utils.download(data_url, localpath)
 
 
 class PVLColumn(object):
@@ -42,7 +82,7 @@ class PVLColumn(object):
 
     @property
     def name(self):
-        return self.pvlobj['NAME']
+        return self.pvlobj["NAME"]
 
     @property
     def name_as_list(self):
@@ -50,28 +90,28 @@ class PVLColumn(object):
         if self.items is None:
             return [self.name]
         else:
-            return [self.name + '_' + str(i + 1) for i in range(self.items)]
+            return [self.name + "_" + str(i + 1) for i in range(self.items)]
 
     @property
     def start(self):
         "Decrease by one as Python is 0-indexed."
-        return self.pvlobj['START_BYTE'] - 1
+        return self.pvlobj["START_BYTE"] - 1
 
     @property
     def stop(self):
-        return self.start + self.pvlobj['BYTES']
+        return self.start + self.pvlobj["BYTES"]
 
     @property
     def items(self):
-        return self.pvlobj.get('ITEMS')
+        return self.pvlobj.get("ITEMS")
 
     @property
     def item_bytes(self):
-        return self.pvlobj.get('ITEM_BYTES')
+        return self.pvlobj.get("ITEM_BYTES")
 
     @property
     def item_offset(self):
-        return self.pvlobj.get('ITEM_OFFSET')
+        return self.pvlobj.get("ITEM_OFFSET")
 
     @property
     def colspecs(self):
@@ -113,7 +153,7 @@ class IndexLabel(object):
     def __init__(self, labelpath):
         self.path = Path(labelpath)
         "search for table name pointer and store key and fpath."
-        tuple = [i for i in self.pvl_lbl if i[0].startswith('^')][0]
+        tuple = [i for i in self.pvl_lbl if i[0].startswith("^")][0]
         self.tablename = tuple[0][1:]
         self.index_name = tuple[1]
 
@@ -131,11 +171,11 @@ class IndexLabel(object):
 
     @property
     def pvl_columns(self):
-        return self.table.getlist('COLUMN')
+        return self.table.getlist("COLUMN")
 
     @property
     def columns_dic(self):
-        return {col['NAME']: col for col in self.pvl_columns}
+        return {col["NAME"]: col for col in self.pvl_columns}
 
     @property
     def colnames(self):
@@ -152,7 +192,7 @@ class IndexLabel(object):
     @property
     def colspecs(self):
         colspecs = []
-        columns = self.table.getlist('COLUMN')
+        columns = self.table.getlist("COLUMN")
         for column in columns:
             pvlcol = PVLColumn(column)
             if pvlcol.items is None:
@@ -182,12 +222,12 @@ def index_to_df(indexpath, label, convert_times=True):
         Switch to control if to convert columns with "TIME" in name (unless COUNT is as well in name) to datetime
     """
     indexpath = Path(indexpath)
-    df = pd.read_fwf(indexpath, header=None,
-                     names=label.colnames,
-                     colspecs=label.colspecs)
+    df = pd.read_fwf(
+        indexpath, header=None, names=label.colnames, colspecs=label.colspecs
+    )
     if convert_times:
-        for column in [i for i in df.columns if 'TIME' in i and not 'COUNT' in i]:
-            if column == 'LOCAL_TIME':
+        for column in [i for i in df.columns if "TIME" in i and "COUNT" not in i]:
+            if column == "LOCAL_TIME":
                 # don't convert local time
                 continue
             print(f"Converting times for column {column}.")
@@ -231,14 +271,13 @@ def find_mixed_type_cols(df, fix=True):
     """
     result = []
     for col in df.columns:
-        weird = (df[[col]].applymap(type) !=
-                 df[[col]].iloc[0].apply(type)).any(axis=1)
+        weird = (df[[col]].applymap(type) != df[[col]].iloc[0].apply(type)).any(axis=1)
         if len(df[weird]) > 0:
             print(col)
             result.append(col)
     if fix is True:
         for col in result:
-            df[col].fillna('UNKNOWN', inplace=True)
+            df[col].fillna("UNKNOWN", inplace=True)
     return result
 
 
@@ -257,9 +296,9 @@ def fix_hirise_edrcumindex(infname, outfname):
         Path where to store the fixed TAB file
     """
     with open(infname) as f:
-        with open(outfname, 'w') as newf:
+        with open(outfname, "w") as newf:
             for line in tqdm(f):
-                exp = line.split(',')[21]
+                exp = line.split(",")[21]
                 if float(exp) > 9999.999:
                     # catching the return of write into dummy variable
                     _ = newf.write(line.replace(exp, exp[:9]))
@@ -268,8 +307,8 @@ def fix_hirise_edrcumindex(infname, outfname):
 
 
 # TODO:
-    # if not labelpath.exists():
-    #     df = pd.read_csv(indexpath, header=None)
+# if not labelpath.exists():
+#     df = pd.read_csv(indexpath, header=None)
 
 
 # FIXME
@@ -287,26 +326,25 @@ def convert_indexfiles_to_hdf(folder):
     """
     indexdir = Path(folder)
     # TODO: make it work for .TAB as well
-    indexfiles = list(indexdir.glob('*.tab'))
+    indexfiles = list(indexdir.glob("*.tab"))
     bucket = []
     if PROGRESSBAR_EXISTS:
         bar = progressbar.ProgressBar(max_value=len(indexfiles))
     for i, indexfile in enumerate(indexfiles):
         # convert times later, more performant
         df = index_to_df(indexfile, convert_times=False)
-        df['index_fname'] = str(indexfile)
+        df["index_fname"] = str(indexfile)
         bucket.append(df)
         if bar:
             bar.update(i)
     totalindex = pd.concat(bucket, ignore_index=True)
     # Converting timestrings to datetimes
     print("Converting times...")
-    for column in [i for i in totalindex.columns if 'TIME' in i]:
-        totalindex[column] = pd.to_datetime(totalindex[column].
-                                            map(utils.
-                                                nasa_datetime_to_iso))
+    for column in [i for i in totalindex.columns if "TIME" in i]:
+        totalindex[column] = pd.to_datetime(
+            totalindex[column].map(utils.nasa_datetime_to_iso)
+        )
     # TODO: Clean up old iss references
-    savepath = indexdir / 'iss_totalindex.hdf'
-    totalindex.to_hdf(savepath, 'df')
-    print("Created pandas HDF index database file here:\n{}"
-          .format(savepath))
+    savepath = indexdir / "iss_totalindex.hdf"
+    totalindex.to_hdf(savepath, "df")
+    print(f"Created pandas HDF index database file here:\n{savepath}")
