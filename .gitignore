@@ -60,3 +60,5 @@ target/
 notebooks/*.lbl
 notebooks/*.tab
 notebooks/*.hdf
+
+notebooks/print\.prt
