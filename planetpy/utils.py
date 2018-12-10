@@ -135,7 +135,7 @@ def download(url, localpath=".", use_tqdm=True, **kwargs):
         with ProgressBar(
             unit="B", unit_scale=True, miniters=1, desc=url.split("/")[-1]
         ) as t:  # all optional kwargs
-            urlretrieve(url, savepath, reporthook=t.update_to)
+            return urlretrieve(url, savepath, reporthook=t.update_to)
     else:
         return urlretrieve(url, savepath, **kwargs)
 
