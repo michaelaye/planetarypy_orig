@@ -7,7 +7,7 @@ from urllib.request import urlretrieve
 import click
 import pandas as pd
 import toml
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 import planetpy.pdstools.data
 
@@ -26,23 +26,6 @@ except ImportError:
     logger.warning("No GDAL found.Some util funcs not working, but okay.")
 else:
     GDAL_INSTALLED = True
-
-
-class ProgressBar(tqdm):
-    """Provides `update_to(n)` which uses `tqdm.update(delta_n)`."""
-
-    def update_to(self, b=1, bsize=1, tsize=None):
-        """
-        b  : int, optional
-            Number of blocks transferred so far [default: 1].
-        bsize  : int, optional
-            Size of each block (in tqdm units) [default: 1].
-        tsize  : int, optional
-            Total size (in tqdm units). If [default: None] remains unchanged.
-        """
-        if tsize is not None:
-            self.total = tsize
-        self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
 
 nasa_date_format = "%Y-%j"
@@ -109,7 +92,24 @@ def get_gdal_center_coords(imgpath):
     return xmean, ymean
 
 
-def download(url, localpath=".", **kwargs):
+class ProgressBar(tqdm):
+    """Provides `update_to(n)` which uses `tqdm.update(delta_n)`."""
+
+    def update_to(self, b=1, bsize=1, tsize=None):
+        """
+        b  : int, optional
+            Number of blocks transferred so far [default: 1].
+        bsize  : int, optional
+            Size of each block (in tqdm units) [default: 1].
+        tsize  : int, optional
+            Total size (in tqdm units). If [default: None] remains unchanged.
+        """
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)  # will also set self.n = b * bsize
+
+
+def download(url, localpath=".", use_tqdm=True, **kwargs):
     """Simple wrapper of urlretrieve
 
     Adding a default path to urlretrieve
@@ -130,7 +130,14 @@ def download(url, localpath=".", **kwargs):
     urlpath = Path(url)
     local = Path(localpath)
     savepath = local / urlpath.name if local.is_dir() else local
-    return urlretrieve(url, savepath, **kwargs)
+    logger.debug("Downloading %s into %s", url, localpath)
+    if use_tqdm:
+        with ProgressBar(
+            unit="B", unit_scale=True, miniters=1, desc=url.split("/")[-1]
+        ) as t:  # all optional kwargs
+            urlretrieve(url, savepath, reporthook=t.update_to)
+    else:
+        return urlretrieve(url, savepath, **kwargs)
 
 
 def height_from_shadow(shadow_in_pixels, sun_elev):
