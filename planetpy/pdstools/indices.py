@@ -39,7 +39,7 @@ def list_available_index_files():
 
 def replace_url_suffix(url, new_suffix=".tab"):
     """Cleanest way to replace the suffix in an URL.
-    
+
     Sometimes the indices have upper case filenames, this is taken care of here.
 
     Parameters
@@ -57,9 +57,9 @@ def replace_url_suffix(url, new_suffix=".tab"):
     )
 
 
-def download(key, localpath="."):
+def download(key, local_dir=".", convert_to_hdf=True):
     """Wrapping URLs for downloading PDS indices and their label files.
-    
+
     Parameters
     ==========
     key : str
@@ -70,10 +70,16 @@ def download(key, localpath="."):
     mission, instr, index = key.split(":")
     label_url = indices_urls[mission][instr][index]
     logger.info("Downloading %s." % label_url)
-    utils.download(label_url, localpath)
+    local_label_path, _ = utils.download(label_url, local_dir)
     data_url = replace_url_suffix(label_url)
     logger.info("Downloading %s.", data_url)
-    utils.download(data_url, localpath)
+    local_data_path, _ = utils.download(data_url, local_dir)
+    if convert_to_hdf is True:
+        label = IndexLabel(local_label_path)
+        df = label.read_index_data()
+        savepath = local_data_path.with_suffix(".hdf")
+        df.to_hdf(savepath, "df")
+    print(f"Downloaded and converted to pandas HDF: {savepath}")
 
 
 class PVLColumn(object):
@@ -231,7 +237,12 @@ def index_to_df(indexpath, label, convert_times=True):
                 # don't convert local time
                 continue
             print(f"Converting times for column {column}.")
-            df[column] = pd.to_datetime(df[column])
+            try:
+                df[column] = pd.to_datetime(df[column])
+            except ValueError:
+                df[column] = pd.to_datetime(
+                    df[column], format=utils.nasa_dt_format_with_ms
+                )
         print("Done.")
     return df
 
