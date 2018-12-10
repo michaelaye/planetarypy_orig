@@ -1,6 +1,7 @@
 import datetime as dt
 import logging
 from math import radians, tan
+from pathlib import Path
 from urllib.request import urlretrieve
 
 import click
@@ -44,11 +45,11 @@ class ProgressBar(tqdm):
         self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
 
-nasa_date_format = '%Y-%j'
-nasa_dt_format = nasa_date_format + 'T%H:%M:%S'
-nasa_dt_format_with_ms = nasa_dt_format + '.%f'
-standard_date_format = '%Y-%m-%d'
-standard_dt_format = standard_date_format + 'T%H:%M:%S'
+nasa_date_format = "%Y-%j"
+nasa_dt_format = nasa_date_format + "T%H:%M:%S"
+nasa_dt_format_with_ms = nasa_dt_format + ".%f"
+standard_date_format = "%Y-%m-%d"
+standard_dt_format = standard_date_format + "T%H:%M:%S"
 
 
 def nasa_date_to_iso(datestr):
@@ -67,8 +68,8 @@ def nasa_date_to_iso(datestr):
     return date.isoformat()
 
 
-@click.command('nasa_date_to_iso')
-@click.argument('datestr')
+@click.command("nasa_date_to_iso")
+@click.argument("datestr")
 def nasa_date_to_iso_command(datestr):
     click.echo(nasa_date_to_iso(datestr))
 
@@ -79,7 +80,7 @@ def iso_to_nasa_date(datestr):
 
 
 def nasa_datetime_to_iso(dtimestr):
-    if dtimestr.split('.')[1]:
+    if dtimestr.split(".")[1]:
         tformat = nasa_dt_format_with_ms
     else:
         tformat = nasa_dt_format
@@ -93,8 +94,8 @@ def iso_to_nasa_datetime(dtimestr):
 
 
 def replace_all_nasa_times(df):
-    for col in [col for col in df.columns if 'TIME' in col]:
-        if 'T' in df[col].iloc[0]:
+    for col in [col for col in df.columns if "TIME" in col]:
+        if "T" in df[col].iloc[0]:
             df[col] = pd.to_datetime(df[col].map(nasa_datetime_to_iso))
 
 
@@ -108,7 +109,7 @@ def get_gdal_center_coords(imgpath):
     return xmean, ymean
 
 
-def download(url, localpath='.', **kwargs):
+def download(url, localpath=".", **kwargs):
     """Simple wrapper of urlretrieve
 
     Adding a default path to urlretrieve
@@ -126,7 +127,10 @@ def download(url, localpath='.', **kwargs):
     Tuple
         Tuple returned by urlretrieve
     """
-    return urlretrieve(url, localpath, **kwargs)
+    urlpath = Path(url)
+    local = Path(localpath)
+    savepath = local / urlpath.name if local.is_dir() else local
+    return urlretrieve(url, savepath, **kwargs)
 
 
 def height_from_shadow(shadow_in_pixels, sun_elev):
