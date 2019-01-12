@@ -1,24 +1,22 @@
 import datetime as dt
 import logging
+import warnings
 from math import radians, tan
 from pathlib import Path
 from urllib.request import urlretrieve
 
 import click
 import pandas as pd
-import toml
-from tqdm.autonotebook import tqdm
-
-import planetpy.pdstools.data
 
 try:
     from importlib_resources import path
 except ModuleNotFoundError:
     from importlib.resources import path
 
+with warnings.catch_warnings("ignore"):
+    from tqdm.autonotebook import tqdm
 
 logger = logging.getLogger(__name__)
-
 try:
     from osgeo import gdal
 except ImportError:
