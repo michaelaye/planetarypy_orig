@@ -13,7 +13,8 @@ try:
 except ModuleNotFoundError:
     from importlib.resources import path
 
-with warnings.catch_warnings("ignore"):
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
     from tqdm.autonotebook import tqdm
 
 logger = logging.getLogger(__name__)
