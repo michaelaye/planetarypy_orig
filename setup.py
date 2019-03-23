@@ -18,7 +18,8 @@ requirements = [
     'pvl',
     'tqdm',
     'click',
-    'toml'
+    'toml',
+    'requests'
 ]
 if sys.version_info < (3,7):
     requirements.append('importlib_resources')
