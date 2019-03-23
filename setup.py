@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup
 import sys
@@ -30,17 +30,15 @@ test_requirements = [
 
 setup(
     name='planetpy',
-    version='0.4.3',
+    version='0.4.4',
     description="Python module to support analysis of planetary data.",
     long_description=readme + '\n\n' + history,
     author="K.-Michael Aye",
     author_email='kmichael.aye@gmail.com',
     url='https://github.com/michaelaye/planetpy',
-    packages=[
-        'planetpy',
-    ],
-    package_dir={'planetpy':
-                 'planetpy'},
+    packages=find_packages(),
+    # package_dir={'planetpy':
+    #              'planetpy'},
     include_package_data=True,
     install_requires=requirements,
     license="ISC",
