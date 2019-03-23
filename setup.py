@@ -5,7 +5,7 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-
+import sys
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -20,6 +20,8 @@ requirements = [
     'click',
     'toml'
 ]
+if sys.version_info < (3,7):
+    requirements.append('importlib_resources')
 
 test_requirements = [
     # TODO: put package test requirements here
