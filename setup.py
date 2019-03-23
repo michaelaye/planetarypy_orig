@@ -17,7 +17,8 @@ requirements = [
     'pandas',
     'pvl',
     'tqdm',
-    'click'
+    'click',
+    'toml'
 ]
 
 test_requirements = [
