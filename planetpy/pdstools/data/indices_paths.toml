@@ -8,6 +8,9 @@ saturn_summary = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_
 [cassini.uvis]
 index = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_index.lbl"
 moon_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_moon_summary.lbl"
+ring_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_ring_summary.lbl"
+saturn_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_saturn_summary.lbl"
+supplemental_index = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_supplemental_index.lbl"
 
 [mro.hirise]
 dtm = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/DTMCUMINDEX.LBL'

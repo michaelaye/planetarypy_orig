@@ -1,5 +1,6 @@
-from .. import indices
+from . import indices
 from ..utils import ProgressBar, download
+from ..io import rootpath
 
 META_URL = 'http://pds-rings.seti.org/metadata'
 
@@ -55,8 +56,8 @@ class META:
     def label(self):
         return indices.IndexLabel(self.meta_filename + '.lbl')
 
-    def read_table(self):
-        return self.label.read_index_data()
+    def read_table(self, **kwargs):
+        return self.label.read_index_data(**kwargs)
 
 
 class UVIS_META(META):
@@ -75,3 +76,25 @@ class ISS_META(META):
 
 class VIMS_META(META):
     id = 'VIMS_0'
+
+
+class IndexDB(object):
+    def __init__(self, indexdir=None):
+        if indexdir is None:
+            try:
+                indexdir = config['pyciss_index']['path']
+            except KeyError:
+                print("Did not find the key `pyciss_indexdir` in the config file.")
+                return
+        self.indexdir = Path(indexdir)
+
+    @property
+    def indexfiles(self):
+        return self.indexdir.glob('*_????.tab')
+
+    @property
+    def cumulative_label(self):
+        return IndexLabel(self.indexdir / 'cumindex.lbl')
+
+    def get_index_no(self, no):
+        return iss_index_to_df(next(self.indexdir.glob('*_' + str(no) + '.tab')))
