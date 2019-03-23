@@ -27,7 +27,7 @@ test_requirements = [
 
 setup(
     name='planetpy',
-    version='0.4.0',
+    version='0.4.1',
     description="Python module to support analysis of planetary data.",
     long_description=readme + '\n\n' + history,
     author="K.-Michael Aye",
