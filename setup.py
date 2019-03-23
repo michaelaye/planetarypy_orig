@@ -19,10 +19,9 @@ requirements = [
     'tqdm',
     'click',
     'toml',
-    'requests'
+    'requests',
+    'importlib_resources'
 ]
-if sys.version_info < (3,7):
-    requirements.append('importlib_resources')
 
 test_requirements = [
     # TODO: put package test requirements here
