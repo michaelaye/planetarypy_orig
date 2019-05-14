@@ -13,6 +13,7 @@ import yaml
 from tqdm import tqdm
 
 from .. import utils
+from .scraper import CTXIndex
 
 try:
     from importlib_resources import read_text
@@ -57,18 +58,25 @@ def replace_url_suffix(url, new_suffix=".tab"):
     )
 
 
-def download(key, local_dir=".", convert_to_hdf=True):
+def download(key=None, label_url=None, local_dir=".", convert_to_hdf=True):
     """Wrapping URLs for downloading PDS indices and their label files.
 
     Parameters
     ==========
-    key : str
+    key : str, optional
         Colon-separated key into the available index files, e.g. cassini:uvis:moon_summary
-    localpath: str, pathlib.Path, optional
+    label_url : str, optional
+        Alternative to using the index system, the user can provide the URL to a label
+        for an index. The table file has to be in the same folder, as usual.
+    local_dir: str, pathlib.Path, optional
         Path for local storage. Default: current directory and filename from URL
     """
-    mission, instr, index = key.split(":")
-    label_url = indices_urls[mission][instr][index]
+    if label_url is None:
+        if key is not None:
+            mission, instr, index = key.split(":")
+            label_url = indices_urls[mission][instr][index]
+        else:
+            raise SyntaxError("One of key or label_url needs to be given.")
     logger.info("Downloading %s." % label_url)
     local_label_path, _ = utils.download(label_url, local_dir)
     data_url = replace_url_suffix(label_url)
@@ -315,47 +323,3 @@ def fix_hirise_edrcumindex(infname, outfname):
                     _ = newf.write(line.replace(exp, exp[:9]))
                 else:
                     _ = newf.write(line)
-
-
-# TODO:
-# if not labelpath.exists():
-#     df = pd.read_csv(indexpath, header=None)
-
-
-# FIXME
-def convert_indexfiles_to_hdf(folder):
-    """Convert all indexfiles to an HDF database.
-
-    Search for .tab files in `folder`, read them into a dataframe,
-    concat to large dataframe at the end and store as HDF file.
-
-    Parameters
-    ----------
-    folder : str or pathlib.Path
-        Folder in where to search for .tab files
-    labelpath : str or pathlb.Path
-    """
-    indexdir = Path(folder)
-    # TODO: make it work for .TAB as well
-    indexfiles = list(indexdir.glob("*.tab"))
-    bucket = []
-    if PROGRESSBAR_EXISTS:
-        bar = progressbar.ProgressBar(max_value=len(indexfiles))
-    for i, indexfile in enumerate(indexfiles):
-        # convert times later, more performant
-        df = index_to_df(indexfile, convert_times=False)
-        df["index_fname"] = str(indexfile)
-        bucket.append(df)
-        if bar:
-            bar.update(i)
-    totalindex = pd.concat(bucket, ignore_index=True)
-    # Converting timestrings to datetimes
-    print("Converting times...")
-    for column in [i for i in totalindex.columns if "TIME" in i]:
-        totalindex[column] = pd.to_datetime(
-            totalindex[column].map(utils.nasa_datetime_to_iso)
-        )
-    # TODO: Clean up old iss references
-    savepath = indexdir / "iss_totalindex.hdf"
-    totalindex.to_hdf(savepath, "df")
-    print(f"Created pandas HDF index database file here:\n{savepath}")
