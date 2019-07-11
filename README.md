@@ -10,7 +10,7 @@ Collection of planetary science tools.
 
 If you use this software, please consider citing it:
 
-[![DOI](https://zenodo.org/badge/15486/michaelaye/planetpy.svg)](https://zenodo.org/badge/latestdoi/15486/michaelaye/planetpy)
+[![DOI](https://zenodo.org/badge/15486/michaelaye/planetarypy.svg)](https://zenodo.org/badge/latestdoi/15486/michaelaye/planetarypy)
 
 ## Vision
 
@@ -25,7 +25,7 @@ If you use this software, please consider citing it:
 
 ## Install
 
-If you want to develop for `planetpy` I recommend installing it like this:
+If you want to develop for `planetarypy` I recommend installing it like this:
 ```python
 python setup.py develop
 ```
@@ -35,9 +35,9 @@ In addition to that I highly recommend these lines for the IPython notebook setu
 %load_ext autoreload
 %autoreload 2
 ```
-This will even autoMAGICALLY make your notebook session aware of any new developments you have added to `planetpy`.
+This will even autoMAGICALLY make your notebook session aware of any new developments you have added to `planetarypy`.
 
-If you just want to use `planetpy` and don't want to be surprised about any changes that might be added into your repository clone after doing a `git pull` then install in the standard way:
+If you just want to use `planetarypy` and don't want to be surprised about any changes that might be added into your repository clone after doing a `git pull` then install in the standard way:
 ```python
 python setup.py install
 ```

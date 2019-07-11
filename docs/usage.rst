@@ -2,6 +2,6 @@
 Usage
 ========
 
-To use planetpy in a project::
+To use planetarypy in a project::
 
-    import planetpy
+    import planetarypy

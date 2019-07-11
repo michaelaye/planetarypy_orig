@@ -45,4 +45,4 @@ class CTXIndex:
 
     @property
     def latest_index_label_url(self):
-        return Path(self.latest_volume_url) / 'index/cumindex.lbl'
+        return self.latest_volume_url + 'index/cumindex.lbl'

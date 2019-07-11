@@ -4,17 +4,17 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-configpath = Path.home() / ".planetpy.toml"
+configpath = Path.home() / ".planetarypy.toml"
 
 
 def print_error():
     print("No configuration file {} found.\n".format(configpath))
     print(
-        """Please run `planetpy.io.set_database_path()` and provide the path where
+        """Please run `planetarypy.io.set_database_path()` and provide the path where
 you want to archive your downloaded data."""
     )
     print(
-        f"`planetpy` will store this path in {configpath}, where you can easily change it later."
+        f"`planetarypy` will store this path in {configpath}, where you can easily change it later."
         " Note, that it will be stored with a host-name, that way you can have different archiving"
         " paths on different machines, but still share the same config file."
     )
@@ -42,7 +42,7 @@ def set_database_path(dbfolder):
     Parameters
     ----------
     dbfolder : str or pathlib.Path
-        Path to where planetpy will store data it downloads..
+        Path to where planetarypy will store data it downloads..
     """
     # First check if there's a config file, so that we don't overwrite
     # anything:

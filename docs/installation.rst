@@ -4,9 +4,9 @@ Installation
 
 At the command line::
 
-    $ easy_install planetpy
+    $ easy_install planetarypy
 
 Or, if you have virtualenvwrapper installed::
 
-    $ mkvirtualenv planetpy
-    $ pip install planetpy
+    $ mkvirtualenv planetarypy
+    $ pip install planetarypy

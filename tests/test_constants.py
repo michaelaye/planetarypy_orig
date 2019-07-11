@@ -1,4 +1,4 @@
-from planetpy import constants
+from planetarypy import constants
 
 def test_constants():
     mars_escape_velocity = 5.0

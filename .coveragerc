@@ -1,10 +1,10 @@
 [run]
 branch = True
-source = planetpy
-include = */planetpy/*
+source = planetarypy
+include = */planetarypy/*
 omit =
     */setup.py
-    */planetpy/external/*
+    */planetarypy/external/*
 parallel = true
 
 [report]

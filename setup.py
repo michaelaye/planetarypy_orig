@@ -28,25 +28,25 @@ test_requirements = [
 ]
 
 setup(
-    name='planetpy',
+    name='planetarypy',
     version='0.4.6',
     description="Python module to support analysis of planetary data.",
     long_description=readme + '\n\n' + history,
     author="K.-Michael Aye",
     author_email='kmichael.aye@gmail.com',
-    url='https://github.com/michaelaye/planetpy',
+    url='https://github.com/michaelaye/planetarypy',
     packages=find_packages(),
-    # package_dir={'planetpy':
-    #              'planetpy'},
+    # package_dir={'planetarypy':
+    #              'planetarypy'},
     include_package_data=True,
     install_requires=requirements,
     license="ISC",
     zip_safe=False,
-    keywords='planetpy',
+    keywords='planetarypy',
     entry_points={
         "console_scripts": [
-            'nasa_date_to_iso = planetpy.utils:nasa_date_to_iso_command',
-            'planetpy_indices = planetpy.pdstools.cli:greet',
+            'nasa_date_to_iso = planetarypy.utils:nasa_date_to_iso_command',
+            'planetarypy_indices = planetarypy.pdstools.cli:greet',
         ]
     },
     classifiers=[

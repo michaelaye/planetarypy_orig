@@ -29,7 +29,7 @@ else:
 
 logger = logging.getLogger(__name__)
 
-indices_urls = toml.loads(read_text("planetpy.pdstools.data", "indices_paths.toml"))
+indices_urls = toml.loads(read_text("planetarypy.pdstools.data", "indices_paths.toml"))
 
 
 def list_available_index_files():
@@ -89,6 +89,10 @@ def download(key=None, label_url=None, local_dir=".", convert_to_hdf=True):
         df.to_hdf(savepath, "df")
     print(f"Downloaded and converted to pandas HDF: {savepath}")
 
+
+def download_CTX_index():
+    ctx = CTXIndex()
+    download(label_url=str(ctx.latest_index_label_url))
 
 class PVLColumn(object):
     def __init__(self, pvlobj):

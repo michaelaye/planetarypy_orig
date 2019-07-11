@@ -35,7 +35,7 @@ clean-test:
 	rm -fr htmlcov/
 
 lint:
-	flake8 planetpy tests
+	flake8 planetarypy tests
 
 test:
 	python setup.py test
@@ -44,15 +44,15 @@ test-all:
 	tox
 
 coverage:
-	coverage run --source planetpy setup.py test
+	coverage run --source planetarypy setup.py test
 	coverage report -m
 	coverage html
 	open htmlcov/index.html
 
 docs:
-	rm -f docs/planetpy.rst
+	rm -f docs/planetarypy.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ planetpy
+	sphinx-apidoc -o docs/ planetarypy
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html

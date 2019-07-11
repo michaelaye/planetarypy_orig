@@ -1,12 +1,12 @@
 ===============================
-planetpy
+planetarypy
 ===============================
 
-.. image:: https://img.shields.io/travis/michaelaye/planetpy.svg
-        :target: https://travis-ci.org/michaelaye/planetpy
+.. image:: https://img.shields.io/travis/michaelaye/planetarypy.svg
+        :target: https://travis-ci.org/michaelaye/planetarypy
 
-.. image:: https://img.shields.io/pypi/v/planetpy.svg
-        :target: https://pypi.python.org/pypi/planetpy
+.. image:: https://img.shields.io/pypi/v/planetarypy.svg
+        :target: https://pypi.python.org/pypi/planetarypy
 
 Tools to work with planetary data.
 
@@ -21,4 +21,4 @@ Future
 ------
 
 I will potentially use this repo to start the generalized
-planetpy package under the framework of OpenPlanetary.
+planetarypy package under the framework of OpenPlanetary.
