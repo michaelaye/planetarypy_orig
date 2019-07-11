@@ -1,4 +1,4 @@
-# planetpy
+# planetarypy
 Collection of planetary science tools.
 
 [![Build Status](https://travis-ci.org/michaelaye/planetpy.svg?branch=master)](https://travis-ci.org/michaelaye/planetpy)
