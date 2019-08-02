@@ -1,18 +1,51 @@
-[cassini.iss]
-index = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_index.lbl"
-inventory = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_inventory.lbl"
-moon_summary = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_moon_summary.lbl"
-ring_summary = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_ring_summary.lbl"
-saturn_summary = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_saturn_summary.lbl"
+[cassini.iss.index]
+url = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_index.lbl"
+last-modified = ""
 
-[cassini.uvis]
-index = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_index.lbl"
-moon_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_moon_summary.lbl"
-ring_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_ring_summary.lbl"
-saturn_summary = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_saturn_summary.lbl"
-supplemental_index = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_supplemental_index.lbl"
+[cassini.iss.inventory]
+url = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_inventory.lbl"
+last-modified = ""
 
-[mro.hirise]
-dtm = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/DTMCUMINDEX.LBL'
-edr = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/EDRCUMINDEX.LBL'
-rdr = 'https://hirise-pds.lpl.arizona.edu/PDS/INDEX/RDRCUMINDEX.LBL'
+[cassini.iss.moon_summary]
+url = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_moon_summary.lbl"
+last-modified = ""
+
+[cassini.iss.ring_summary]
+url = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_ring_summary.lbl"
+last-modified = ""
+
+[cassini.iss.saturn_summary]
+url = "https://pds-rings.seti.org/holdings/metadata/COISS_2xxx/COISS_2999/COISS_2999_saturn_summary.lbl"
+last-modified = ""
+
+[cassini.uvis.index]
+url = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_index.lbl"
+last-modified = ""
+
+[cassini.uvis.moon_summary]
+url = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_moon_summary.lbl"
+last-modified = ""
+
+[cassini.uvis.ring_summary]
+url = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_ring_summary.lbl"
+last-modified = ""
+
+[cassini.uvis.saturn_summary]
+url = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_saturn_summary.lbl"
+last-modified = ""
+
+[cassini.uvis.supplemental_index]
+url = "https://pds-rings.seti.org/holdings/metadata/COUVIS_0xxx/COUVIS_0999/COUVIS_0999_supplemental_index.lbl"
+last-modified = ""
+
+[mro.hirise.dtm]
+url = "https://hirise-pds.lpl.arizona.edu/PDS/INDEX/DTMCUMINDEX.LBL"
+last-modified = ""
+
+[mro.hirise.edr]
+url = "https://hirise-pds.lpl.arizona.edu/PDS/INDEX/EDRCUMINDEX.LBL"
+last-modified = ""
+
+[mro.hirise.rdr]
+url = "https://hirise-pds.lpl.arizona.edu/PDS/INDEX/RDRCUMINDEX.LBL"
+last-modified = ""
