@@ -2,6 +2,7 @@
 
 The main user interface is the IndexLabel class which is able to load the table file for you.
 """
+import copy
 import logging
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
@@ -9,33 +10,132 @@ from urllib.parse import urlsplit, urlunsplit
 import pandas as pd
 import pvl
 import toml
-import yaml
 from tqdm import tqdm
 
 from .. import utils
 from .scraper import CTXIndex
 
 try:
-    from importlib_resources import read_text
+    # 3.6 compatibility
+    from importlib_resources import path
 except ModuleNotFoundError:
-    from importlib.resources import read_text
-
-try:
-    import progressbar
-except ImportError:
-    PROGRESSBAR_EXISTS = False
-else:
-    PROGRESSBAR_EXISTS = True
+    from importlib.resources import path
 
 logger = logging.getLogger(__name__)
 
-indices_urls = toml.loads(read_text("planetarypy.pdstools.data", "indices_paths.toml"))
+
+class IndexDB:
+    fname = "pds_indices_db.toml"
+    fpath = Path.home() / f".{fname}"
+
+    def __init__(self):
+        """Initialize index database.
+
+        Will copy the package's version to user's home folder at init,
+        so that user doesn't need to edit file in package to add new indices.
+        """
+        if not self.fpath.exists():
+            with path("planetarypy.pdstools.data", self.fname) as p:
+                self.config = self.read_from_file(p)
+        else:
+            self.config = self.read_from_file()
+
+    def read_from_file(self, path=None):
+        """Read the config.
+
+        Writing this short method to decouple IndexDB from choice of config file format.
+
+        Parameters
+        ----------
+        path : str, pathlib.Path
+            Path to the config file to open.
+        """
+        if path is None:
+            path = self.fpath
+        return toml.load(path)
+
+    def write_to_file(self):
+        "Write the config to user's home copy."
+        with open(self.fpath, 'w') as f:
+            toml.dump(self.config, f)
+
+    def get_by_path(self, nested_key):
+        """Get sub-dictionary by nested key.
+
+        Parameters
+        ----------
+        nested_key: str
+            A nested key in the toml format, separated by '.', e.g. cassini.uvis.ring_summary
+        """
+        mapList = nested_key.split(".")
+        d = copy.deepcopy(self.config)
+        for k in mapList:
+            d = d[k]
+        return d
+
+    def set_by_path(self, nested_key, value):
+        """Set a nested dictionary key to new value.
+
+        Parameters
+        ----------
+        nested_key : str
+            A nested key in the toml format, separated by '.', e.g. cassini.uvis.summary
+        value : str
+            New value for dictionary key
+        """
+        dic = self.config
+        keys = nested_key.split(".")
+        for key in keys[:-1]:
+            dic = dic.setdefault(key, {})
+        dic[keys[-1]] = value
+
+    def list_indices(self):
+        "Print index database in pretty form, using toml.dumps"
+        print(toml.dumps(self.config))
+        print(
+            "Use indices.download('mission.instrument.index') to download in index file."
+        )
+        print("For example: indices.download('cassini.uvis.moon_summary'")
+
+    def download(self, key=None, label_url=None, local_dir=".", convert_to_hdf=True):
+        """Wrapping URLs for downloading PDS indices and their label files.
+
+        Parameters
+        ==========
+        key : str, optional
+            Period-separated key into the available index files, e.g. cassini.uvis.moon_summary
+        label_url : str, optional
+            Alternative to using the index system, the user can provide the URL to a label
+            for an index. The table file has to be in the same folder, as usual.
+        local_dir: str, pathlib.Path, optional
+            Path for local storage. Default: current directory and filename from URL
+        convert_to_hdf : bool
+            Switch to convert the index automatically to a faster loading HDF file
+        """
+        if label_url is None:
+            if key is not None:
+                index = self.get_by_path(key)
+            else:
+                raise SyntaxError("One of key or label_url needs to be given.")
+        label_url = index['url']
+        logger.info("Downloading %s." % label_url)
+        local_label_path, _ = utils.download(label_url, local_dir)
+        data_url = replace_url_suffix(label_url)
+        logger.info("Downloading %s.", data_url)
+        local_data_path, _ = utils.download(data_url, local_dir)
+        if convert_to_hdf is True:
+            label = IndexLabel(local_label_path)
+            df = label.read_index_data()
+            savepath = local_data_path.with_suffix(".hdf")
+            df.to_hdf(savepath, "df")
+        print(f"Downloaded and converted to pandas HDF: {savepath}")
+
+    def __repr__(self):
+        return toml.dumps(self.config)
 
 
-def list_available_index_files():
-    print(yaml.dump(indices_urls, default_flow_style=False))
-    print("Use indices.download('mission:instrument:index') to download in index file.")
-    print("For example: indices.download('cassini:uvis:moon_summary'")
+# global
+indexdb = IndexDB()
 
 
 def replace_url_suffix(url, new_suffix=".tab"):
@@ -58,41 +158,10 @@ def replace_url_suffix(url, new_suffix=".tab"):
     )
 
 
-def download(key=None, label_url=None, local_dir=".", convert_to_hdf=True):
-    """Wrapping URLs for downloading PDS indices and their label files.
-
-    Parameters
-    ==========
-    key : str, optional
-        Colon-separated key into the available index files, e.g. cassini:uvis:moon_summary
-    label_url : str, optional
-        Alternative to using the index system, the user can provide the URL to a label
-        for an index. The table file has to be in the same folder, as usual.
-    local_dir: str, pathlib.Path, optional
-        Path for local storage. Default: current directory and filename from URL
-    """
-    if label_url is None:
-        if key is not None:
-            mission, instr, index = key.split(":")
-            label_url = indices_urls[mission][instr][index]
-        else:
-            raise SyntaxError("One of key or label_url needs to be given.")
-    logger.info("Downloading %s." % label_url)
-    local_label_path, _ = utils.download(label_url, local_dir)
-    data_url = replace_url_suffix(label_url)
-    logger.info("Downloading %s.", data_url)
-    local_data_path, _ = utils.download(data_url, local_dir)
-    if convert_to_hdf is True:
-        label = IndexLabel(local_label_path)
-        df = label.read_index_data()
-        savepath = local_data_path.with_suffix(".hdf")
-        df.to_hdf(savepath, "df")
-    print(f"Downloaded and converted to pandas HDF: {savepath}")
-
-
 def download_CTX_index():
     ctx = CTXIndex()
     download(label_url=str(ctx.latest_index_label_url))
+
 
 class PVLColumn(object):
     def __init__(self, pvlobj):
