@@ -4,12 +4,14 @@ The main user interface is the IndexLabel class which is able to load the table 
 """
 import copy
 import logging
+from collections import namedtuple
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 import pandas as pd
 import pvl
 import toml
+from dateutil import parser
 from tqdm import tqdm
 
 from .. import utils
@@ -22,6 +24,9 @@ except ModuleNotFoundError:
     from importlib.resources import path
 
 logger = logging.getLogger(__name__)
+
+
+Index = namedtuple("Index", "key url timestamp")
 
 
 class IndexDB:
@@ -56,7 +61,7 @@ class IndexDB:
 
     def write_to_file(self):
         "Write the config to user's home copy."
-        with open(self.fpath, 'w') as f:
+        with open(self.fpath, "w") as f:
             toml.dump(self.config, f)
 
     def get_by_path(self, nested_key):
@@ -71,7 +76,7 @@ class IndexDB:
         d = copy.deepcopy(self.config)
         for k in mapList:
             d = d[k]
-        return d
+        return Index(nested_key, **d)
 
     def set_by_path(self, nested_key, value):
         """Set a nested dictionary key to new value.
@@ -97,11 +102,42 @@ class IndexDB:
         )
         print("For example: indices.download('cassini.uvis.moon_summary'")
 
+    def needs_download(self, index):
+        """Determine if the index needs to be downloaded.
+
+        Download shall happen when (1) no local timestamp was stored or (2) when the remote timestamp
+        is newer.
+
+        Parameters
+        ----------
+        index : indices.Index (namedtuple)
+            Index holding the timestamp attribute read from the config file
+
+        Returns
+        -------
+        bool
+            Boolean indicating if download shall happen.
+        """
+        remote_timestamp = utils.get_remote_timestamp(index.url)
+        self.new_timestamp = remote_timestamp
+        if index.timestamp:
+            if remote_timestamp > parser.parse(index.timestamp):
+                return True
+        else:
+            # also return True when the timestamp is not valid
+            return True
+        # all other cases no D/L required
+        return False
+
+    def update_timestamp(self, index):
+        self.set_by_path(f"{index.key}.timestamp", self.new_timestamp.isoformat())
+        self.write_to_file()
+
     def download(self, key=None, label_url=None, local_dir=".", convert_to_hdf=True):
         """Wrapping URLs for downloading PDS indices and their label files.
 
         Parameters
-        ==========
+        ----------
         key : str, optional
             Period-separated key into the available index files, e.g. cassini.uvis.moon_summary
         label_url : str, optional
@@ -117,12 +153,16 @@ class IndexDB:
                 index = self.get_by_path(key)
             else:
                 raise SyntaxError("One of key or label_url needs to be given.")
-        label_url = index['url']
+        # check timestamp
+        if not self.needs_download(index):
+            return
+        label_url = index.url
         logger.info("Downloading %s." % label_url)
         local_label_path, _ = utils.download(label_url, local_dir)
         data_url = replace_url_suffix(label_url)
         logger.info("Downloading %s.", data_url)
         local_data_path, _ = utils.download(data_url, local_dir)
+        self.update_timestamp(index)
         if convert_to_hdf is True:
             label = IndexLabel(local_label_path)
             df = label.read_index_data()
@@ -144,7 +184,7 @@ def replace_url_suffix(url, new_suffix=".tab"):
     Sometimes the indices have upper case filenames, this is taken care of here.
 
     Parameters
-    ==========
+    ----------
     url : str
         URl to a file that has a suffix like .lbl
     new_suffix : str, optional
@@ -349,7 +389,6 @@ def find_mixed_type_cols(df, fix=True):
 
     Tool to help with the performance warning when trying to save a pandas DataFrame as a HDF.
     When a column changes datatype somewhere, pickling occurs, slowing down the reading process of the HDF file.
-
 
     Parameters
     ----------
