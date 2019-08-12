@@ -1,17 +1,13 @@
 import datetime as dt
+import email.utils as eut
 import logging
 import warnings
 from math import radians, tan
 from pathlib import Path
-from urllib.request import urlretrieve
+from urllib.request import urlopen, urlretrieve
 
 import click
 import pandas as pd
-
-try:
-    from importlib_resources import path
-except ModuleNotFoundError:
-    from importlib.resources import path
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -106,6 +102,18 @@ class ProgressBar(tqdm):
         if tsize is not None:
             self.total = tsize
         self.update(b * bsize - self.n)  # will also set self.n = b * bsize
+
+
+def parse_http_date(text):
+    "Parse date string retrieved via urllib.request."
+    return dt.datetime(*eut.parsedate(text)[:6])
+
+
+def get_remote_timestamp(url):
+    conn = urlopen(url, timeout=10)
+    t = parse_http_date(conn.headers['last-modified'])
+    conn.close()
+    return t
 
 
 def download(url, localpath=".", use_tqdm=True, **kwargs):
