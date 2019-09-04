@@ -57,3 +57,12 @@ last-modified = ""
 [lro.diviner.edr2]
 url = "https://pds-geosciences.wustl.edu/lro/lro-l-dlre-2-edr-v1/lrodlr_0002/index/index.lbl"
 last-modified = ""
+
+[lro.diviner.rdr1]
+url = "https://pds-geosciences.wustl.edu/lro/lro-l-dlre-4-rdr-v1/lrodlr_1001/index/rdrindex.lbl"
+last-modified = ""
+
+[lro.diviner.rdr2]
+url = "https://pds-geosciences.wustl.edu/lro/lro-l-dlre-4-rdr-v1/lrodlr_1002/index/rdrindex.lbl"
+last-modified = ""
+
