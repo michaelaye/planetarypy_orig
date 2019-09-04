@@ -49,3 +49,11 @@ last-modified = ""
 [mro.hirise.rdr]
 url = "https://hirise-pds.lpl.arizona.edu/PDS/INDEX/RDRCUMINDEX.LBL"
 last-modified = ""
+
+[lro.diviner.edr1]
+url = "https://pds-geosciences.wustl.edu/lro/lro-l-dlre-2-edr-v1/lrodlr_0001/index/index.lbl"
+last-modified = ""
+
+[lro.diviner.edr2]
+url = "https://pds-geosciences.wustl.edu/lro/lro-l-dlre-2-edr-v1/lrodlr_0002/index/index.lbl"
+last-modified = ""
