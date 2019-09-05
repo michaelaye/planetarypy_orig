@@ -66,3 +66,10 @@ last-modified = ""
 url = "https://pds-geosciences.wustl.edu/lro/lro-l-dlre-4-rdr-v1/lrodlr_1002/index/rdrindex.lbl"
 last-modified = ""
 
+[lro.lola.edr]
+url = "http://pds-geosciences.wustl.edu/lro/lro-l-lola-2-edr-v1/lrolol_0xxx/index/edrindex.lbl"
+last-modified = ""
+
+[lro.lola.rdr]
+url = "http://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/index/rdrindex.lbl"
+last-modified = ""
