@@ -4,7 +4,9 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-configpath = Path.home() / ".planetarypy.toml"
+# create configpath depending on package name
+pkg_name = __name__.split(".")[0]
+configpath = Path.home() / f".{pkg_name}.toml"
 
 
 def print_error():
@@ -18,22 +20,6 @@ you want to archive your downloaded data."""
         " Note, that it will be stored with a host-name, that way you can have different archiving"
         " paths on different machines, but still share the same config file."
     )
-
-
-if not configpath.exists():
-    print_error()
-else:
-    config = toml.load(str(configpath))
-    if len(config) == 0:
-        print(
-            "Config file has no data storage path."
-            "Please run io.set_database_path(folder) with `folder` pointing to the directory "
-            "where you want data to be stored."
-        )
-    try:
-        rootpath = Path(config["data_archive"]["path"])
-    except KeyError:
-        raise KeyError("data_archive/path key not found in config.")
 
 
 def set_database_path(dbfolder):
@@ -62,3 +48,17 @@ def set_database_path(dbfolder):
     with open(configpath, "w") as f:
         ret = toml.dump(config, f)
     print(f"Saved database path {ret} into {configpath}.")
+
+
+def get_data_root():
+    config = toml.load(str(configpath))
+    data_root = Path(config["data_archive"]["path"]).expanduser()
+    data_root.mkdir(exist_ok=True, parents=True)
+    return data_root
+
+
+if not configpath.exists():
+    print(f"No configuration file {configpath} found.\n")
+    savepath = input("Provide the path where all planetarypy-managed data should be stored:")
+    set_database_path(savepath)
+data_root = get_data_root()
