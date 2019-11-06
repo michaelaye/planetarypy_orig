@@ -40,6 +40,7 @@ This will even autoMAGICALLY make your notebook session aware of any new develop
 
 If you just want to use `planetarypy` and don't want to be surprised about any changes that might be added into your repository clone after doing a `git pull` then install in the standard way:
 ```python
-python setup.py install
+pip install .
 ```
-Note that this way you will have to execute another `python setup.py install` each time you `git-pull` in updates from github.
+Note that the install via `pip` is now preferred compared to `python setup.py install` due to cleaner removal supported by pip.
+Note also that this way you will have to execute another `python setup.py install` each time you `git-pull` in updates from github.
