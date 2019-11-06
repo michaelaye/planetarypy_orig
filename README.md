@@ -27,9 +27,10 @@ If you use this software, please consider citing it:
 
 If you want to develop for `planetarypy` I recommend installing it like this:
 ```python
-python setup.py develop
+pip install -e .
 ```
-That will create a path link into the github directory, and you can avoid adding setting up a PYTHONPATH which can create a lot of trouble. All new developments will become automatically active, i.e. importable without another `install`.
+Note the `.` at the end.
+This will create a path link into the github directory, and you can avoid adding setting up a PYTHONPATH which can create a lot of trouble. All new developments will become automatically active, i.e. importable without another `install`.
 In addition to that I highly recommend these lines for the IPython notebook setup:
 ```python
 %load_ext autoreload
