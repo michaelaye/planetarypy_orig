@@ -116,7 +116,7 @@ def get_remote_timestamp(url):
     return t
 
 
-def download(url, localpath=".", use_tqdm=True, **kwargs):
+def download(url, local_dir=".", use_tqdm=True, **kwargs):
     """Simple wrapper of urlretrieve
 
     Adding a default path to urlretrieve
@@ -125,8 +125,8 @@ def download(url, localpath=".", use_tqdm=True, **kwargs):
     ----------
     url : str
         HTTP(S) URL to download
-    localpath : str,pathlib.Path
-        Local path where to store the download.
+    local_dir : str,pathlib.Path
+        Local directory where to store the download.
     **kwargs : {dict}
         Keyword args to be handed to urlretrieve.
     Returns
@@ -134,10 +134,10 @@ def download(url, localpath=".", use_tqdm=True, **kwargs):
     Tuple
         Tuple returned by urlretrieve
     """
-    urlpath = Path(url)
-    local = Path(localpath)
-    savepath = local / urlpath.name if local.is_dir() else local
-    logger.debug("Downloading %s into %s", url, localpath)
+    name = url.split('/')[-1]
+    local = Path(local_dir)
+    savepath = local / name if local.is_dir() else local
+    logger.debug("Downloading %s into %s", url, savepath)
     if use_tqdm:
         with ProgressBar(
             unit="B", unit_scale=True, miniters=1, desc=url.split("/")[-1]
