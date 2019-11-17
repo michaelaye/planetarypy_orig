@@ -4,7 +4,7 @@ The main user interface is the IndexLabel class which is able to load the table 
 """
 import copy
 import logging
-from collections import namedtuple
+from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,18 +15,154 @@ from dateutil import parser
 from tqdm import tqdm
 
 from .. import utils
+from ..io import config
 from .scraper import CTXIndex
 
 try:
     # 3.6 compatibility
-    from importlib_resources import path
+    from importlib_resources import path as resource_path
 except ModuleNotFoundError:
-    from importlib.resources import path
+    from importlib.resources import path as resource_path
 
 logger = logging.getLogger(__name__)
 
 
-Index = namedtuple("Index", "key url timestamp")
+@dataclass
+class Index:
+    """Index manager class.
+
+    Parameters
+    ----------
+    key : str
+        Nested key in form of mission.instrument.index_name
+    url : str
+        URL to index
+    timestamp : str
+        Timestamp in ISO time format yy-mm-ddTHH:MM:SS.
+        This is usually read by the IndexDB class from the config file and its
+        value is the time of the last download.
+    """
+
+    local_root = Path(config["data_archive"]["indices"])
+    key: str
+    url: str
+    timestamp: str
+
+    @property
+    def needs_download(self):
+        """Determine if the index needs to be downloaded.
+
+        Download shall happen when (1) no local timestamp was stored or (2) when the remote timestamp
+        is newer.
+
+        Parameters
+        ----------
+        index : indices.Index (namedtuple)
+            Index holding the timestamp attribute read from the config file
+
+        Returns
+        -------
+        bool
+            Boolean indicating if download shall happen.
+        """
+        remote_timestamp = utils.get_remote_timestamp(self.url)
+        self.new_timestamp = remote_timestamp
+        if self.timestamp:
+            if remote_timestamp > parser.parse(self.timestamp):
+                return True
+        else:
+            # also return True when the timestamp is not valid
+            return True
+        # all other cases no D/L required
+        return False
+
+    @property
+    def key_tokens(self):
+        return self.key.split(".")
+
+    @property
+    def mission(self):
+        return self.key_tokens[0]
+
+    @property
+    def instrument(self):
+        return self.key_tokens[1]
+
+    @property
+    def index_name(self):
+        "str: Examples: EDR, RDR"
+        return self.key_tokens[2]
+
+    @property
+    def label_filename(self):
+        return Path(self.url.split("/")[-1])
+
+    @property
+    def isupper(self):
+        return self.label_filename.suffix.isupper()
+
+    @property
+    def table_filename(self):
+        new_suffix = ".TAB" if self.isupper else ".tab"
+        return self.label_filename.with_suffix(new_suffix)
+
+    @property
+    def label_path(self):
+        return Path(urlsplit(self.url).path)
+
+    @property
+    def table_path(self):
+        return self.label_path.with_name(self.table_filename.name)
+
+    @property
+    def table_url(self):
+        tokens = urlsplit(self.url)
+        return urlunsplit(
+            tokens._replace(path=str(self.label_path.with_name(self.table_filename.name)))
+        )
+
+    @property
+    def local_dir(self):
+        p = self.local_root / f"{self.mission}/{self.instrument}"
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    def download(self, local_dir="", convert_to_hdf=True):
+        """Wrapping URLs for downloading PDS indices and their label files.
+
+        Parameters
+        ----------
+        key : str, optional
+            Period-separated key into the available index files, e.g. cassini.uvis.moon_summary
+        label_url : str, optional
+            Alternative to using the index system, the user can provide the URL to a label
+            for an index. The table file has to be in the same folder, as usual.
+        local_dir: str, pathlib.Path, optional
+            Path for local storage. Default: current directory and filename from URL
+        convert_to_hdf : bool
+            Switch to convert the index automatically to a faster loading HDF file
+        """
+        if not local_dir:
+            local_dir = self.local_dir
+        # check timestamp
+        if not self.needs_download:
+            print("Stored index is up-to-date.")
+            return
+        label_url = self.url
+        logger.info("Downloading %s." % label_url)
+        local_label_path, _ = utils.download(label_url, local_dir)
+        logger.info("Downloading %s.", self.table_url)
+        local_data_path, _ = utils.download(self.table_url, local_dir)
+        IndexDB().update_timestamp(self)
+        if convert_to_hdf is True:
+            label = IndexLabel(local_label_path)
+            df = label.read_index_data()
+            savepath = local_data_path.with_suffix(".hdf")
+            df.to_hdf(savepath, "df")
+        print(f"Downloaded and converted to pandas HDF: {savepath}")
+
+
+indices_root = config['data_archive']['indices']
 
 
 class IndexDB:
@@ -38,9 +174,12 @@ class IndexDB:
 
         Will copy the package's version to user's home folder at init,
         so that user doesn't need to edit file in package to add new indices.
+
+        Adding new index URLs to the package's config file pds_indices_db.toml
+        is highly encouraged via pull request.
         """
         if not self.fpath.exists():
-            with path("planetarypy.pdstools.data", self.fname) as p:
+            with resource_path("planetarypy.pdstools.data", self.fname) as p:
                 self.config = self.read_from_file(p)
         else:
             self.config = self.read_from_file()
@@ -102,38 +241,13 @@ class IndexDB:
         )
         print("For example: indices.download('cassini.uvis.moon_summary'")
 
-    def needs_download(self, index):
-        """Determine if the index needs to be downloaded.
-
-        Download shall happen when (1) no local timestamp was stored or (2) when the remote timestamp
-        is newer.
-
-        Parameters
-        ----------
-        index : indices.Index (namedtuple)
-            Index holding the timestamp attribute read from the config file
-
-        Returns
-        -------
-        bool
-            Boolean indicating if download shall happen.
-        """
-        remote_timestamp = utils.get_remote_timestamp(index.url)
-        self.new_timestamp = remote_timestamp
-        if index.timestamp:
-            if remote_timestamp > parser.parse(index.timestamp):
-                return True
-        else:
-            # also return True when the timestamp is not valid
-            return True
-        # all other cases no D/L required
-        return False
-
     def update_timestamp(self, index):
-        self.set_by_path(f"{index.key}.timestamp", self.new_timestamp.isoformat())
+        self.set_by_path(f"{index.key}.timestamp", index.new_timestamp.isoformat())
         self.write_to_file()
 
-    def download(self, key=None, label_url=None, local_dir=".", convert_to_hdf=True):
+    def get_index(self, key):
+        return Index()
+    def download(self, key=None, label_url=None, local_dir="", convert_to_hdf=True):
         """Wrapping URLs for downloading PDS indices and their label files.
 
         Parameters
@@ -196,11 +310,6 @@ def replace_url_suffix(url, new_suffix=".tab"):
     return urlunsplit(
         split._replace(path=str(Path(split.path).with_suffix(new_suffix)))
     )
-
-
-def download_CTX_index():
-    ctx = CTXIndex()
-    download(label_url=str(ctx.latest_index_label_url))
 
 
 class PVLColumn(object):
@@ -415,9 +524,10 @@ def find_mixed_type_cols(df, fix=True):
 def fix_hirise_edrcumindex(infname, outfname):
     """Fix HiRISE EDRCUMINDEX.
 
-    The HiRISE EDRCUMINDEX has some broken lines where the SCAN_EXPOSURE_DURATION is of format F10.4 instead of
-    the defined F9.4.
-    This function simply replaces those incidences with one less decimal fraction, so 20000.0000 becomes 20000.000.
+    The HiRISE EDRCUMINDEX has some broken lines where the SCAN_EXPOSURE_DURATION is of format
+    F10.4 instead of the defined F9.4.
+    This function simply replaces those incidences with one less decimal fraction, so 20000.0000
+    becomes 20000.000.
 
     Parameters
     ----------
