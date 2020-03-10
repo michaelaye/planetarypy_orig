@@ -15,7 +15,7 @@ from dateutil import parser
 from tqdm import tqdm
 
 from .. import utils
-from ..io import config
+from .._config import config
 from .scraper import CTXIndex
 
 try:
@@ -118,7 +118,9 @@ class Index:
     def table_url(self):
         tokens = urlsplit(self.url)
         return urlunsplit(
-            tokens._replace(path=str(self.label_path.with_name(self.table_filename.name)))
+            tokens._replace(
+                path=str(self.label_path.with_name(self.table_filename.name))
+            )
         )
 
     @property
@@ -126,6 +128,18 @@ class Index:
         p = self.local_root / f"{self.mission}/{self.instrument}"
         p.mkdir(parents=True, exist_ok=True)
         return p
+
+    @property
+    def local_table_path(self):
+        return self.local_dir / self.table_filename
+
+    @property
+    def local_label_path(self):
+        return self.local_dir / self.label_filename
+
+    @property
+    def local_hdf_path(self):
+        return self.local_table_path.with_suffix(".hdf")
 
     def download(self, local_dir="", convert_to_hdf=True):
         """Wrapping URLs for downloading PDS indices and their label files.
@@ -162,7 +176,7 @@ class Index:
         print(f"Downloaded and converted to pandas HDF: {savepath}")
 
 
-indices_root = config['data_archive']['indices']
+indices_root = config["data_archive"]["indices"]
 
 
 class IndexDB:
@@ -217,6 +231,10 @@ class IndexDB:
             d = d[k]
         return Index(nested_key, **d)
 
+    def get(self, nested_key):
+        "alias to get_by_path"
+        return self.get_by_path(nested_key)
+
     def set_by_path(self, nested_key, value):
         """Set a nested dictionary key to new value.
 
@@ -245,8 +263,6 @@ class IndexDB:
         self.set_by_path(f"{index.key}.timestamp", index.new_timestamp.isoformat())
         self.write_to_file()
 
-    def get_index(self, key):
-        return Index()
     def download(self, key=None, label_url=None, local_dir="", convert_to_hdf=True):
         """Wrapping URLs for downloading PDS indices and their label files.
 
