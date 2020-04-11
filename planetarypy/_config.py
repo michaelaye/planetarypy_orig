@@ -1,6 +1,7 @@
-import toml
 import logging
 from pathlib import Path
+
+import toml
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ configpath = Path.home() / f".{pkg_name}.toml"
 def print_error():
     print("No configuration file {} found.\n".format(configpath))
     print(
-        """Please run `planetarypy.io.set_database_path()` and provide the path where
+        """Please run `planetarypy.set_database_path()` and provide the path where
 you want to archive your downloaded data."""
     )
     print(
@@ -59,7 +60,9 @@ def get_data_root():
 
 if not configpath.exists():
     print(f"No configuration file {configpath} found.\n")
-    savepath = input("Provide the path where all planetarypy-managed data should be stored:")
+    savepath = input(
+        "Provide the path where all planetarypy-managed data should be stored:"
+    )
     set_database_path(savepath)
 else:
     data_root = get_data_root()
