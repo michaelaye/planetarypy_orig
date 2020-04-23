@@ -308,6 +308,10 @@ class IndexDB:
 indexdb = IndexDB()
 
 
+def list_available_index_files():
+    print(indexdb)
+
+
 def replace_url_suffix(url, new_suffix=".tab"):
     """Cleanest way to replace the suffix in an URL.
 
