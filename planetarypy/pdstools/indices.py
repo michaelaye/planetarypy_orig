@@ -26,6 +26,8 @@ except ModuleNotFoundError:
 
 logger = logging.getLogger(__name__)
 
+indices_root = Path(config["data_archive"]["path"]) / "indices"
+
 
 @dataclass
 class Index:
@@ -43,7 +45,7 @@ class Index:
         value is the time of the last download.
     """
 
-    local_root = Path(config["data_archive"]["indices"])
+    local_root = indices_root
     key: str
     url: str
     timestamp: str
@@ -174,9 +176,6 @@ class Index:
             savepath = local_data_path.with_suffix(".hdf")
             df.to_hdf(savepath, "df")
         print(f"Downloaded and converted to pandas HDF: {savepath}")
-
-
-indices_root = config["data_archive"]["indices"]
 
 
 class IndexDB:
