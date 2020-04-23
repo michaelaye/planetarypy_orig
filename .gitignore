@@ -65,3 +65,5 @@ notebooks/print\.prt
 
 **/*.img
 .mypy_cache/
+
+**/.ipynb_checkpoints
