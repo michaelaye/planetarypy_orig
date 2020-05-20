@@ -127,7 +127,7 @@ class Index:
 
     @property
     def local_dir(self):
-        p = self.local_root / f"{self.mission}/{self.instrument}"
+        p = self.local_root / f"{self.mission}/{self.instrument}/{self.index_name}"
         p.mkdir(parents=True, exist_ok=True)
         return p
 
@@ -142,6 +142,10 @@ class Index:
     @property
     def local_hdf_path(self):
         return self.local_table_path.with_suffix(".hdf")
+
+    @property
+    def df(self):
+        return pd.read_hdf(self.local_hdf_path)
 
     def download(self, local_dir="", convert_to_hdf=True):
         """Wrapping URLs for downloading PDS indices and their label files.
@@ -262,7 +266,9 @@ class IndexDB:
         self.set_by_path(f"{index.key}.timestamp", index.new_timestamp.isoformat())
         self.write_to_file()
 
-    def download(self, key=None, label_url=None, local_dir="", convert_to_hdf=True):
+    def download(
+        self, key=None, label_url=None, local_dir="", convert_to_hdf=True, force=False
+    ):
         """Wrapping URLs for downloading PDS indices and their label files.
 
         Parameters
@@ -283,8 +289,11 @@ class IndexDB:
             else:
                 raise SyntaxError("One of key or label_url needs to be given.")
         # check timestamp
-        if not self.needs_download(index):
-            return
+        if not index.needs_download and not force:
+            print("Stored index is up-to-date.")
+            return index.local_hdf_path
+        if not local_dir:
+            local_dir = index.local_dir
         label_url = index.url
         logger.info("Downloading %s." % label_url)
         local_label_path, _ = utils.download(label_url, local_dir)
@@ -490,7 +499,7 @@ def index_to_df(indexpath, label, convert_times=True):
                 df[column] = pd.to_datetime(df[column])
             except ValueError:
                 df[column] = pd.to_datetime(
-                    df[column], format=utils.nasa_dt_format_with_ms
+                    df[column], format=utils.nasa_dt_format_with_ms, errors="coerce"
                 )
         print("Done.")
     return df
