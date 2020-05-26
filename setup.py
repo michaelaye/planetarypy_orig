@@ -33,6 +33,7 @@ setup(
         "importlib_resources",
         "dataclasses; python_version=='3.6'",
     ],
+    python_requires=">=3.6, <4",
     license="ISC",
     zip_safe=False,
     keywords="planetarypy",
@@ -50,5 +51,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3 :: Only",
     ],
 )
