@@ -8,6 +8,7 @@ from urllib.request import urlopen, urlretrieve
 
 import click
 import pandas as pd
+import requests
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -111,7 +112,7 @@ def parse_http_date(text):
 
 def get_remote_timestamp(url):
     conn = urlopen(url, timeout=10)
-    t = parse_http_date(conn.headers['last-modified'])
+    t = parse_http_date(conn.headers["last-modified"])
     conn.close()
     return t
 
@@ -134,7 +135,7 @@ def download(url, local_dir=".", use_tqdm=True, **kwargs):
     Tuple
         Tuple returned by urlretrieve
     """
-    name = url.split('/')[-1]
+    name = url.split("/")[-1]
     local = Path(local_dir)
     savepath = local / name if local.is_dir() else local
     logger.debug("Downloading %s into %s", url, savepath)
@@ -145,6 +146,41 @@ def download(url, local_dir=".", use_tqdm=True, **kwargs):
             return urlretrieve(url, savepath, reporthook=t.update_to)
     else:
         return urlretrieve(url, savepath, **kwargs)
+
+
+def url_retrieve(url: str, outfile: str, chunk_size: int = 128):
+    """Improved urlretrieve with progressbar, timeout and chunker.
+
+    This downloader has built-in progress bar using tqdm and using the `requests`
+    package it improves standard `urllib` behavior by adding time-out capability.
+
+    I tested different chunk_sizes and most of the time 128 was actually fastest, YYMV.
+
+    Parameters
+    ----------
+    url : str, urlpath.URL
+        The URL to download
+    outfile: str, pathlib.Path
+        The path where to store the downloaded file.
+    chunk_size : int, optional
+        The size of the chunk for the request.iter_content call. Default: 128
+
+    See also
+    --------
+    Inspired by https://stackoverflow.com/a/61575758/680232
+    """
+    R = requests.get(url, stream=True, allow_redirects=True)
+    if R.status_code != 200:
+        raise ConnectionError(f"Could not download {url}\nError code: {R.status_code}")
+    with tqdm.wrapattr(
+        open(outfile, "wb"),
+        "write",
+        miniters=1,
+        total=int(R.headers.get("content-length", 0)),
+        desc=str(outfile),
+    ) as fd:
+        for chunk in R.iter_content(chunk_size=chunk_size):
+            fd.write(chunk)
 
 
 def height_from_shadow(shadow_in_pixels, sun_elev):
