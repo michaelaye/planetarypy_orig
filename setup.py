@@ -15,7 +15,7 @@ with open("HISTORY.rst") as history_file:
 
 setup(
     name="planetarypy",
-    version="0.7.0",
+    version="0.7.1",
     description="Python module to support analysis of planetary data.",
     long_description=readme + "\n\n" + history,
     author="K.-Michael Aye",
