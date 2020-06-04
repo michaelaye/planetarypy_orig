@@ -12,7 +12,7 @@ import requests
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    from tqdm.autonotebook import tqdm
+    from tqdm.auto import tqdm
 
 logger = logging.getLogger(__name__)
 try:
