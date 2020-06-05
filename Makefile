@@ -59,11 +59,14 @@ docs:
 
 release: dist
 	twine upload dist/*
-	
+
 dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel
 	ls -l dist
 
 install: clean
-	python setup.py install
+	pip install .
+
+devinstall: clean
+	pip install -e .
