@@ -30,7 +30,7 @@ setup(
         "click",
         "toml",
         "requests",
-        "importlib_resources",
+        "importlib_resources; python_version<'3.9'",
         "dataclasses; python_version=='3.6'",
     ],
     python_requires=">=3.6, <4",
