@@ -9,17 +9,16 @@ from urllib.request import urlopen, urlretrieve
 import click
 import pandas as pd
 import requests
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from tqdm.auto import tqdm
+from tqdm.auto import tqdm
 
 logger = logging.getLogger(__name__)
 try:
     from osgeo import gdal
 except ImportError:
     GDAL_INSTALLED = False
-    logger.warning("No GDAL found.Some util funcs not working, but okay.")
+    logger.warning(
+        "No GDAL found. Some planetary.utils functions not working, but okay."
+    )
 else:
     GDAL_INSTALLED = True
 
@@ -177,7 +176,7 @@ def url_retrieve(url: str, outfile: str, chunk_size: int = 128):
         "write",
         miniters=1,
         total=int(R.headers.get("content-length", 0)),
-        desc=str(outfile),
+        desc=str(Path(outfile).name),
     ) as fd:
         for chunk in R.iter_content(chunk_size=chunk_size):
             fd.write(chunk)
