@@ -64,6 +64,9 @@ notebooks/*.hdf
 notebooks/print\.prt
 
 **/*.img
-.mypy_cache/
+
+**/.mypy_cache
+
+**/.pytest_cache
 
 **/.ipynb_checkpoints
