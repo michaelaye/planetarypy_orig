@@ -64,3 +64,7 @@ notebooks/*.hdf
 notebooks/print\.prt
 
 **/*.img
+
+**/.mypy_cache
+
+**/.pytest_cache
