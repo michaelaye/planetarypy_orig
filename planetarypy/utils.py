@@ -1,7 +1,6 @@
 import datetime as dt
 import email.utils as eut
 import logging
-import warnings
 from math import radians, tan
 from pathlib import Path
 from urllib.request import urlopen, urlretrieve
