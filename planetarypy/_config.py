@@ -61,6 +61,6 @@ if not configpath.exists():
     print(f"No configuration file {configpath} found.\n")
     savepath = input("Provide the path where all planetarypy-managed data should be stored:")
     set_database_path(savepath)
-else:
-    data_root = get_data_root()
-    config = toml.load(str(configpath))
+
+data_root = get_data_root()
+config = toml.load(str(configpath))
