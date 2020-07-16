@@ -1,4 +1,3 @@
-from pathlib import Path
 from string import Template
 
 import pandas as pd
@@ -6,12 +5,12 @@ import pandas as pd
 
 class CTXIndex:
     volumes_url = "https://pds-imaging.jpl.nasa.gov/volumes/mro.html"
-    release_url_template = \
-        Template(
-            "https://pds-imaging.jpl.nasa.gov/volumes/mro/release${release}.html")
-    volume_url_template = \
-        Template(
-            "https://pds-imaging.jpl.nasa.gov/data/mro/mars_reconnaissance_orbiter/ctx/mrox_${volume}/")
+    release_url_template = Template(
+        "https://pds-imaging.jpl.nasa.gov/volumes/mro/release${release}.html"
+    )
+    volume_url_template = Template(
+        "https://pds-imaging.jpl.nasa.gov/data/mro/mars_reconnaissance_orbiter/ctx/mrox_${volume}/"
+    )
 
     @property
     def web_tables_list(self):
@@ -45,4 +44,4 @@ class CTXIndex:
 
     @property
     def latest_index_label_url(self):
-        return self.latest_volume_url + 'index/cumindex.lbl'
+        return self.latest_volume_url + "index/cumindex.lbl"

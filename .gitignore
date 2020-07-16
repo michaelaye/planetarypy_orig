@@ -65,6 +65,7 @@ notebooks/print\.prt
 
 **/*.img
 
-**/.mypy_cache
-
 **/.pytest_cache
+
+**/.ipynb_checkpoints
+**/.mypy_cache
