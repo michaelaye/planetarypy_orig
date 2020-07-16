@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # encoding: utf-8
 """
-Some tools to work with Mars data.
+Some tools to work with geo data.
 Abbreviations:
 ul = Upper Left
 lr = LowerRight
@@ -9,22 +8,23 @@ lr = LowerRight
 Copyright (c) 2011 Klaus-Michael Aye. All rights reserved.
 """
 
-from __future__ import division, print_function, absolute_import
-from osgeo import gdal, osr
-import sys
 import os
-from matplotlib.pyplot import figure, show
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
-import numpy as np
+import sys
 from math import atan2, degrees
+
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.pyplot import figure, show
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+from osgeo import gdal, osr
+
 from .exceptions import *
 
 gdal.UseExceptions()
 
 
-def calculate_image_azimuth(origPoint, newPoint, zero='right'):
+def calculate_image_azimuth(origPoint, newPoint, zero="right"):
     """Calculate azimuth angle between 2 image points.
 
     Parameters
@@ -46,7 +46,7 @@ def calculate_image_azimuth(origPoint, newPoint, zero='right'):
         azimuth += 360.0
     if azimuth > 360.0:
         azimuth -= 360.0
-    if zero == 'top':
+    if zero == "top":
         azimuth += 90.0
         if azimuth > 360.0:
             azimuth -= 360.0
@@ -62,8 +62,8 @@ def debug_srs(projection):
     TODO: Check for being PolarStereographic before doing this!
     """
     srs = osr.SpatialReference(projection)
-    if int(srs.GetProjParm('scale_factor')) == 0:
-        srs.SetProjParm('scale_factor', 1)
+    if int(srs.GetProjParm("scale_factor")) == 0:
+        srs.SetProjParm("scale_factor", 1)
     return srs
 
 
@@ -96,7 +96,7 @@ def pixel_to_meter(sample, line, geotransform, shift=False):
     return (x, y)
 
 
-class Point(object):
+class Point:
     """Point class to manage pixel and map points and their transformations.
 
     Parameters
@@ -127,11 +127,21 @@ class Point(object):
     3 4
     """
 
-    def __init__(self,
-                 sample=None, line=None,
-                 x=None, y=None,
-                 lon=None, lat=None,
-                 geotrans=None, proj=None):
+    @classmethod
+    def copy_geodata(cls, point, **kwargs):
+        return cls(geotrans=point.geotrans, proj=point.proj, **kwargs)
+
+    def __init__(
+        self,
+        sample=None,
+        line=None,
+        x=None,
+        y=None,
+        lon=None,
+        lat=None,
+        geotrans=None,
+        proj=None,
+    ):
         self.sample = sample
         self.line = line
         self.x = x
@@ -155,11 +165,6 @@ class Point(object):
     @property
     def pixels(self):
         return np.array([self.sample, self.line])
-
-    @property
-    def sample(self):
-        "I am the 'sample' property."
-        return self._sample
 
     @property
     def coords(self):
@@ -190,10 +195,14 @@ class Point(object):
             newPoint.lon = self.lon + other.lon
         return newPoint
 
-    def __call__(self):
-        print('Pixel: ({0},{1})'.format(self.sample, self.line))
-        print('Map: ({0},{1})'.format(self.x, self.y))
-        print('Geo: ({0},{1})'.format(self.lon, self.lat))
+    def __str__(self):
+        s = f"Pixel: ({self.sample}, {self.line})\n"
+        s += f"Map: ({self.x}, {self.y})\n"
+        s += f"Lon/Lat: ({self.lon}, {self.lat})"
+        return s
+
+    def __repr__(self):
+        return self.__str__()
 
     def pixel_to_meter(self, geotransform=None, shift_to_center=False):
         """provide point in map projection coordinates.
@@ -224,11 +233,10 @@ class Point(object):
         # if it's still None
         if geotransform is None:
             # raise Error, abort method
-            raise ProjectionNotSetError('pixel_to_meter')
+            raise ProjectionNotSetError("pixel_to_meter")
         if self.sample is None:
-            raise SomethingNotSetError('pixel_to_meter', "'sample'")
-        self.x, self.y = pixel_to_meter(self.sample, self.line,
-                                        geotransform)
+            raise SomethingNotSetError("pixel_to_meter", "'sample'")
+        self.x, self.y = pixel_to_meter(self.sample, self.line, geotransform)
         return (self.x, self.y)
 
     def meter_to_pixel(self, geotransform=None):
@@ -241,14 +249,14 @@ class Point(object):
         >>> '%6.2f ,'*2 % p.meter_to_pixel(mola.dataset.GetGeoTransform())
         '10488.45 ,930.66 ,'
         """
+        if geotransform is None:
+            geotransform = self.geotrans
         if (self.x is None) or (self.y is None):
-            raise SomethingNotSetError((self.x, self.y),
-                                       'Map coordinates not '
-                                       'set for transformation.')
-        success, tInverse = gdal.InvGeoTransform(geotransform)
-        self.sample, self.line = gdal.ApplyGeoTransform(tInverse,
-                                                        self.x,
-                                                        self.y)
+            raise SomethingNotSetError(
+                (self.x, self.y), "Map coordinates not " "set for transformation."
+            )
+        tInverse = gdal.InvGeoTransform(geotransform)
+        self.sample, self.line = gdal.ApplyGeoTransform(tInverse, self.x, self.y)
         return (self.sample, self.line)
 
     def pixel_to_lonlat(self, geotransform=None, projection=None):
@@ -265,7 +273,7 @@ class Point(object):
         if projection is None:
             projection = self.proj
         if projection is None:
-            raise ProjectionNotSetError('lonlat_to_meter')
+            raise ProjectionNotSetError("lonlat_to_meter")
         srs = debug_srs(projection)
         ct = osr.CoordinateTransformation(srs, srs.CloneGeogCS())
         self.lon, self.lat, height = ct.TransformPoint(self.x, self.y)
@@ -277,18 +285,18 @@ class Point(object):
         if projection is None:
             projection = self.proj
         if projection is None:
-            raise ProjectionNotSetError('lonlat_to_meter')
+            raise ProjectionNotSetError("lonlat_to_meter")
         srs = debug_srs(projection)
         ct = osr.CoordinateTransformation(srs.CloneGeogCS(), srs)
         # height not used so far!
         self.x, self.y, height = ct.TransformPoint(self.lon, self.lat)
         return (self.x, self.y)
 
-    def calculate_azimuth(self, p2, zero='right'):
+    def calculate_azimuth(self, p2, zero="right"):
         return calculate_image_azimuth(self, p2, zero=zero)
 
 
-class Window(object):
+class Window:
     """class to manage a window made of corner Points (objects of Point())
 
     when using width, only quadratic windows supported currently
@@ -296,8 +304,7 @@ class Window(object):
     >>> p2 = Point(10,20)
     """
 
-    def __init__(self, ulPoint=None, lrPoint=None,
-                 centerPoint=None, width=None):
+    def __init__(self, ulPoint=None, lrPoint=None, centerPoint=None, width=None):
         if not any([lrPoint, centerPoint, width]):
             self.usage()
         else:
@@ -311,21 +318,38 @@ class Window(object):
             elif ulPoint and width:
                 self.get_lr_from_width()
             else:
-                print("Either upper left and lower right or upper left/"
-                      " centerPoint with width needs to be provided.")
+                print(
+                    "Either upper left and lower right or upper left/"
+                    " centerPoint with width needs to be provided."
+                )
                 return
 
     def copy(self):
-        win = Window(Point(self.ul.sample, self.ul.line,
-                           x=self.ul.x, y=self.ul.y,
-                           lon=self.ul.lon, lat=self.ul.lat),
-                     Point(self.lr.sample, self.lr.line,
-                           x=self.lr.x, y=self.lr.y,
-                           lon=self.lr.lon, lat=self.lr.lat))
+        win = Window(
+            Point(
+                self.ul.sample,
+                self.ul.line,
+                x=self.ul.x,
+                y=self.ul.y,
+                lon=self.ul.lon,
+                lat=self.ul.lat,
+            ),
+            Point(
+                self.lr.sample,
+                self.lr.line,
+                x=self.lr.x,
+                y=self.lr.y,
+                lon=self.lr.lon,
+                lat=self.lr.lat,
+            ),
+        )
         return win
 
-    def __call__(self):
-        return self.ul(), self.lr(), self.width, self.center()
+    def __str__(self):
+        s = f"{self.ul()}, {self.lr()}, {self.width}, {self.center()}"
+
+    def __repr__(self):
+        return self.__str__()
 
     def get_lr_from_width(self):
         lrSample = self.ul.sample + self.width
@@ -334,11 +358,13 @@ class Window(object):
         return self.lr
 
     def usage(self):
-        print("""Usage: win = Window(pointObject1, pointObject2)
+        print(
+            """Usage: win = Window(pointObject1, pointObject2)
         or
         win = Window(pointObject1, width_in_Pixel)
         or
-        win = Window(centerPoint, width_in_Pixel)""")
+        win = Window(centerPoint, width_in_Pixel)"""
+        )
         return
 
     def get_corners_from_center(self):
@@ -366,9 +392,12 @@ class Window(object):
         >>> win.get_gdal_window()
         [10, 150, 90, 50]
         """
-        return [int(self.ul.sample), int(self.ul.line),
-                int(self.lr.sample - self.ul.sample),
-                int(self.lr.line - self.ul.line)]
+        return [
+            int(self.ul.sample),
+            int(self.ul.line),
+            int(self.lr.sample - self.ul.sample),
+            int(self.lr.line - self.ul.line),
+        ]
 
     def get_extent(self, dataset, lonlat=False):
         """provide window coordinates in matplotlib extent format
@@ -387,14 +416,12 @@ class Window(object):
             self.lr.pixel_to_meter(dataset.GetGeoTransform())
             return [self.ul.x, self.lr.x, self.lr.y, self.ul.y]
         elif lonlat is True:
-            self.ul.pixel_to_lonlat(dataset.GetGeoTransform(),
-                                    dataset.GetProjection())
-            self.lr.pixel_to_lonlat(dataset.GetGeoTransform(),
-                                    dataset.GetProjection())
+            self.ul.pixel_to_lonlat(dataset.GetGeoTransform(), dataset.GetProjection())
+            self.lr.pixel_to_lonlat(dataset.GetGeoTransform(), dataset.GetProjection())
             return [self.ul.lon, self.lr.lon, self.lr.lat, self.ul.lat]
 
 
-class ImgData(object):
+class ImgData:
     """docstring for ImgData"""
 
     def __init__(self, fname=None):
@@ -404,13 +431,13 @@ class ImgData(object):
         self.X = self.ds.RasterXSize
         self.Y = self.ds.RasterYSize
         for i in range(self.ds.RasterCount):
-            setattr(self, 'band' + str(i + 1), self.ds.GetRasterBand(i + 1))
+            setattr(self, "band" + str(i + 1), self.ds.GetRasterBand(i + 1))
         self.band = self.band1  # keep with older interface of just 1 band
         self.geotrans = self.dataset.GetGeoTransform()
         self.projection = self.dataset.GetProjection()
-        self.center = Point(self.X // 2, self.Y // 2,
-                            geotrans=self.geotrans,
-                            proj=self.projection)
+        self.center = Point(
+            self.X // 2, self.Y // 2, geotrans=self.geotrans, proj=self.projection
+        )
 
     def _read_data(self, band):
         band = getattr(self, band)
@@ -424,7 +451,7 @@ class ImgData(object):
         "return a window of n x n "
         self.data = self.ds.ReadAsArray(n, n, self.X - n, self.Y - n)
 
-    def read_center_window(self, width=500, band='band1'):
+    def read_center_window(self, width=500, band="band1"):
         """Get some sample data from the center of the dataset
 
         Input: width of square data array, default 500
@@ -441,7 +468,7 @@ class ImgData(object):
         self.window = Window(centerPoint=self.center, width=width)
         self._read_data(band)
 
-    def read_all(self, maxdim=1024, band='band1'):
+    def read_all(self, maxdim=1024, band="band1"):
         """This reads all data into a max_dim sized buffer.
 
         GDAL is doing the downsampling.
@@ -452,8 +479,7 @@ class ImgData(object):
         ns = self.X
         nl = self.Y
 
-        self.window = Window(ulPoint=Point(0, 0),
-                             lrPoint=Point(self.X, self.Y))
+        self.window = Window(ulPoint=Point(0, 0), lrPoint=Point(self.X, self.Y))
         # if full res is smaller than maxdim, get everything
         if (maxdim > self.X) and (maxdim > self.Y):
             data = b.ReadAsArray()
@@ -478,7 +504,7 @@ class ImgData(object):
         self.data = data
         return mdata
 
-    def read_window(self, ul_or_win, lrPoint=None, band='band1'):
+    def read_window(self, ul_or_win, lrPoint=None, band="band1"):
         """get data for Window object or 2 Point objects
 
         user can either provide one Window object or 2 Point objects as input
@@ -532,11 +558,11 @@ class ImgData(object):
         extent = self.window.get_extent(self.dataset, lonlat)
         im = ax.imshow(self.data, extent=extent)  # ,origin='image')
         if lonlat:
-            ax.set_xlabel('Longitude [deg]')
-            ax.set_ylabel('Latitude [deg]')
+            ax.set_xlabel("Longitude [deg]")
+            ax.set_ylabel("Latitude [deg]")
         else:
-            ax.set_xlabel('Rectangular X [m]')
-            ax.set_ylabel('Rectangular Y [m]')
+            ax.set_xlabel("Rectangular X [m]")
+            ax.set_ylabel("Rectangular Y [m]")
         if cb:
             fig.colorbar(im)
         self.ax = ax
@@ -550,32 +576,28 @@ class ImgData(object):
         # get closed magnitude to 10 % of image extent
         scalebarLength = 10 ** int(round(np.log10(diff / 10)))
         scalebarLength /= 1000
-        d = dict([(1, '1 km'), (10, '10 m'), (100, '100 m'), (1000, '1 km'),
-                  (10000, '10 km'), (100000, '100 km'), (1000000, '1000 km')])
-        asb = AnchoredSizeBar(self.ax.transData,
-                              scalebarLength,
-                              d[scalebarLength],
-                              loc=loc)
+        d = dict(
+            [
+                (1, "1 km"),
+                (10, "10 m"),
+                (100, "100 m"),
+                (1000, "1 km"),
+                (10000, "10 km"),
+                (100000, "100 km"),
+                (1000000, "1000 km"),
+            ]
+        )
+        asb = AnchoredSizeBar(
+            self.ax.transData, scalebarLength, d[scalebarLength], loc=loc
+        )
         self.ax.add_artist(asb)
         self.ax.get_figure().canvas.draw()
-
-
-class MOLA(ImgData):
-    """docstring for MOLA"""
-
-    def __init__(self,
-                 fname=os.path.join(os.getenv('HOME'),
-                                    'data/mola/megr_s_512_1.cub')):
-        ImgData.__init__(self, fname)
 
 
 class CTX(ImgData):
     """docstring for CTX"""
 
-    def __init__(self,
-                 fname=os.getenv('HOME') +
-                 '/data/ctx/inca_city/PSP_004226_0984/'
-                 'P08_004226_0984_XI_81S063W.cal.des.map.cub'):
+    def __init__(self, fname):
         ImgData.__init__(self, fname)
 
     def add_mola_contours(self):
@@ -589,24 +611,19 @@ class CTX(ImgData):
         ax = fig.add_subplot(111)
         plt.gray()
         ax.imshow(self.data, extent=self.window.get_extent(self.dataset))
-        CS = ax.contour(mola.data, 8, cmap=cm.jet,
-                        extent=self.window.get_extent(self.dataset),
-                        origin='image')
+        CS = ax.contour(
+            mola.data,
+            8,
+            cmap=cm.jet,
+            extent=self.window.get_extent(self.dataset),
+            origin="image",
+        )
         plt.clabel(CS, fontsize=13, inline=1)
-        ax.set_xlabel('Polar stereographic X [km]')
-        ax.set_ylabel('Polar stereographic Y [km]')
-        ax.set_title('CTX: ' + os.path.basename(self.fname))
+        ax.set_xlabel("Polar stereographic X [km]")
+        ax.set_ylabel("Polar stereographic Y [km]")
+        ax.set_title("CTX: " + os.path.basename(self.fname))
         self.ax = ax
         plt.show()
-
-
-class HiRISE(ImgData):
-    """docstring for HiRISE"""
-
-    def __init__(self,
-                 fname=os.getenv('HOME') + '/data/hirise/inca_city/'
-                 'PSP_002380_0985_RED.cal.norm.map.equ.mos.cub'):
-        ImgData.__init__(self, fname)
 
 
 # def combine_ctx_and_mola(ctxFilename, ctxSample, ctxLine, ctxWidth):
@@ -657,17 +674,18 @@ class HiRISE(ImgData):
 
 def main(argv=None):
     """docstring for main"""
-    from enthought.mayavi import mlab
+    from mayavi import mlab
+
     if argv is None:
         argv = sys.argv
 
     x1 = x2 = y1 = y2 = 0
-    fname = ''
+    fname = ""
     try:
         fname = argv[1]
         x1, x2, y1, y2 = [int(i) for i in argv[2:]]
     except:
-        print('Usage: {0} fname x1 x2 y1 y2'.format(argv[0]))
+        print("Usage: {0} fname x1 x2 y1 y2".format(argv[0]))
 
     print(x1, x2, y1, y2)
     ds = gdal.Open(fname)
@@ -679,10 +697,8 @@ def main(argv=None):
     SCALING_FACTOR = 0.25
     OFFSET = -8000
     topo = (STORED_VALUE * SCALING_FACTOR) + OFFSET
-    mlab.surf(topo, warp_scale=1 / 115., vmin=1700)
-    mlab.colorbar(orientation='vertical',
-                  title='Height [m]',
-                  label_fmt='%4.0f')
+    mlab.surf(topo, warp_scale=1 / 115.0, vmin=1700)
+    mlab.colorbar(orientation="vertical", title="Height [m]", label_fmt="%4.0f")
     mlab.show()
 
 
