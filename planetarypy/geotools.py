@@ -1,6 +1,8 @@
 # encoding: utf-8
 """
 Some tools to work with geo data.
+GDAL required!
+
 Abbreviations:
 ul = Upper Left
 lr = LowerRight
@@ -27,6 +29,12 @@ gdal.UseExceptions()
 def calculate_image_azimuth(origPoint, newPoint, zero="right"):
     """Calculate azimuth angle between 2 image points.
 
+    Beware that this function calculates trigonometric angles.
+    If the points are from an image that has (0, 0) in the upper left, this means
+    that the angles increase clockwise.
+    That is why, for example, for an HiRISE image, the return matches the angle 
+    definition for HiRISE data.
+
     Parameters
     ==========
     origPoint, newPoint: <mars.Point> objects
@@ -35,12 +43,13 @@ def calculate_image_azimuth(origPoint, newPoint, zero="right"):
 
     Returns
     =======
-    azimuth: <float> azimuth angle
+    azimuth: <float>
+        Azimuth angle
     """
     deltaSample = newPoint.sample - origPoint.sample
     deltaLine = newPoint.line - origPoint.line
 
-    azimuth = degrees(atan2(deltaLine, deltaSample))
+    azimuth = np.degrees(np.arctan2(deltaLine, deltaSample))
 
     if azimuth < 0.0:
         azimuth += 360.0
