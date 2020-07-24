@@ -6,4 +6,4 @@ from ._config import set_database_path  # noqa
 
 __author__ = "K.-Michael Aye"
 __email__ = "kmichael.aye@gmail.com"
-__version__ = "0.8.0"
+__version__ = "0.9.0"
