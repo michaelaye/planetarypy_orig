@@ -32,8 +32,8 @@ def calculate_image_azimuth(origPoint, newPoint, zero="right"):
     Beware that this function calculates trigonometric angles.
     If the points are from an image that has (0, 0) in the upper left, this means
     that the angles increase clockwise.
-    That is why, for example, for an HiRISE image, the return matches the angle 
-    definition for HiRISE data.
+    That is why, for example, for an HiRISE image, the return of this function
+    matches the angle rotation definition for HiRISE data.
 
     Parameters
     ==========
@@ -61,6 +61,48 @@ def calculate_image_azimuth(origPoint, newPoint, zero="right"):
             azimuth -= 360.0
 
     return azimuth
+
+
+def get_north_shifted_point(img, offset=0.001):
+    "Increasing the latitude is a sure way of getting north."
+    newPoint = Point(lon=img.center.lon, lat=img.center.lat + offset)
+    newPoint.lonlat_to_pixel(img.geotrans, img.projection)
+    return newPoint
+
+
+def calculate_image_north_azimuth(img, zero="right"):
+    newPoint = get_north_shifted_point(img)
+    return img.center.calculate_azimuth(newPoint, zero=zero)
+
+
+def get_sun_angles(spicer, img):
+    """Calculate solar azimuth and incidence.
+    
+    By requiring a spicer object for this function, it becomes independent from the
+    solar system object where the calculations are made.
+
+    Parameters
+    ----------
+    spicer : spicer.Spicer
+        needs to be setup for time, but spoint is set from img.center in here.
+    img : geotools.ImgData
+        The image data of which the center point serves as the start point.
+    
+    Returns
+    -------
+    tuple(float, float)
+        Solar azimuth, incidence [degrees]
+    """
+    p = img.center
+    spicer.set_spoint_by(lat=p.lat, lon=p.lon)
+    p2lon, p2lat = spicer.point_towards_sun(pixel_res=1)
+    p2 = Point.copy_geodata(p, lat=p2lat.value, lon=p2lon.value)
+    p2.lonlat_to_pixel()
+    # remember, this calculates CCW angles, but if image is "origin='upper'",
+    # it becomes CW
+    sun_az = p.calculate_azimuth(p2)
+    sun_inc = spicer.illum_angles.dsolar
+    return sun_az, sun_inc.value
 
 
 def debug_srs(projection):
@@ -681,35 +723,35 @@ class CTX(ImgData):
 #     plt.show()
 
 
-def main(argv=None):
-    """docstring for main"""
-    from mayavi import mlab
+# def main(argv=None):
+#     """docstring for main"""
+#     from mayavi import mlab
 
-    if argv is None:
-        argv = sys.argv
+#     if argv is None:
+#         argv = sys.argv
 
-    x1 = x2 = y1 = y2 = 0
-    fname = ""
-    try:
-        fname = argv[1]
-        x1, x2, y1, y2 = [int(i) for i in argv[2:]]
-    except:
-        print("Usage: {0} fname x1 x2 y1 y2".format(argv[0]))
+#     x1 = x2 = y1 = y2 = 0
+#     fname = ""
+#     try:
+#         fname = argv[1]
+#         x1, x2, y1, y2 = [int(i) for i in argv[2:]]
+#     except:
+#         print("Usage: {0} fname x1 x2 y1 y2".format(argv[0]))
 
-    print(x1, x2, y1, y2)
-    ds = gdal.Open(fname)
-    band = ds.GetRasterBand(1)
-    STORED_VALUE = band.ReadAsArray(x1, y1, x2 - x1, y2 - y1)
-    ds = 0
+#     print(x1, x2, y1, y2)
+#     ds = gdal.Open(fname)
+#     band = ds.GetRasterBand(1)
+#     STORED_VALUE = band.ReadAsArray(x1, y1, x2 - x1, y2 - y1)
+#     ds = 0
 
-    # PDS label infos:
-    SCALING_FACTOR = 0.25
-    OFFSET = -8000
-    topo = (STORED_VALUE * SCALING_FACTOR) + OFFSET
-    mlab.surf(topo, warp_scale=1 / 115.0, vmin=1700)
-    mlab.colorbar(orientation="vertical", title="Height [m]", label_fmt="%4.0f")
-    mlab.show()
+#     # PDS label infos:
+#     SCALING_FACTOR = 0.25
+#     OFFSET = -8000
+#     topo = (STORED_VALUE * SCALING_FACTOR) + OFFSET
+#     mlab.surf(topo, warp_scale=1 / 115.0, vmin=1700)
+#     mlab.colorbar(orientation="vertical", title="Height [m]", label_fmt="%4.0f")
+#     mlab.show()
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+# if __name__ == "__main__":
+#     sys.exit(main())
